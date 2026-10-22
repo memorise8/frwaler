@@ -10,5 +10,6 @@
  "trial_default": 100,
  "trial_max": 1000,
  "large_threshold": 10000,
- "fake_cmd": null
+ "fake_cmd": null,
+ "known_keys_dir": null
 }

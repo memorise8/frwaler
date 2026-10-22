@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   formatScheduleInterval,
   formatScheduleMode,
+  isRunnerScheduleMode,
   isScheduleDirty,
+  needsTrialConfirm,
   pendingScheduleSaves,
+  scheduleCreateBody,
   setScheduleDraft,
   shownEnabled,
 } from "../src/lib/schedule-display";
@@ -63,5 +66,25 @@ describe("schedule checkbox drafts", () => {
     const drafts = setScheduleDraft({}, rows[0]!, false);
     const savedRow = row("a-site", false);
     expect(setScheduleDraft(drafts, savedRow, savedRow.enabled)).toEqual({});
+  });
+});
+
+describe("enum_incremental schedules (new plan-driven collector)", () => {
+  it("is labelled and routed to the collect runner", () => {
+    expect(formatScheduleMode("enum_incremental")).toBe("새 수집기 증분(새 글만)");
+    expect(isRunnerScheduleMode("enum_incremental")).toBe(true);
+    expect(isRunnerScheduleMode("incremental")).toBe(false);
+  });
+
+  it("never carries a 1회 제한 (the plan bounds it) and keeps the registered-crawler body unchanged", () => {
+    expect(scheduleCreateBody("enum_incremental", 24, 100)).toEqual({ interval_hours: 24, mode: "enum_incremental", limit_n: null, enabled: true });
+    expect(scheduleCreateBody("incremental", 168, 100)).toEqual({ interval_hours: 168, mode: "incremental", limit_n: 100, enabled: true });
+  });
+
+  it("needs the unverified-crawler trial confirmation only for registered-crawler schedules", () => {
+    expect(needsTrialConfirm({ enabled: true, mode: "incremental" })).toBe(true);
+    expect(needsTrialConfirm({ enabled: true })).toBe(true);
+    expect(needsTrialConfirm({ enabled: true, mode: "enum_incremental" })).toBe(false);
+    expect(needsTrialConfirm({ enabled: false, mode: "incremental" })).toBe(false);
   });
 });

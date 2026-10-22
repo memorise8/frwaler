@@ -11,6 +11,8 @@
 #   ENUM_REFERENCE_DB          읽기 전용 참조 DB(sqlite) 호스트 경로 -> --reference-db
 #   ENUM_ALLOW_EMPTY_REFERENCE 1 이면 --allow-empty-reference
 #   ENUM_FILES                 1 이면 --files
+#   ENUM_INCREMENTAL           1 이면 --incremental (앞쪽부터 새 글만, plan 의 incremental 설정; 최신순 목록만)
+#   ENUM_KNOWN_KEYS            증분용 이미 납품된 키 파일(CSV/JSONL: site_id,post_number,meta_url) 호스트 경로 -> --known-keys
 #   ENUM_WITH_BROWSER          1 이면 빌드 시 크로미움 설치
 #   ENUM_EXTRA_ARGS            틀에 그대로 넘길 추가 옵션(공백 구분, 예: "--retry-failed")
 set -euo pipefail
@@ -84,6 +86,11 @@ cmd_run() {
     die "이 이미지의 틀에 --seed-holds 옵션이 없음. 틀 변경이 반영된 소스로 다시 build 하세요."
   fi
 
+  if [[ "${ENUM_INCREMENTAL:-0}" == "1" ]] && ! docker run --rm --network none --read-only --tmpfs /tmp --user 10001:10001 "$IMAGE" --help 2>&1 | grep -q -- '--incremental'; then
+    die "이 이미지의 틀에 --incremental 옵션이 없음. 틀 변경이 반영된 소스로 다시 build 하세요."
+  fi
+  [[ -n "${ENUM_KNOWN_KEYS:-}" && "${ENUM_INCREMENTAL:-0}" != "1" ]] && die "ENUM_KNOWN_KEYS 는 ENUM_INCREMENTAL=1 일 때만"
+
   # 전용 네트워크 (우리가 만든 것만 재사용)
   if network_exists; then
     network_is_ours || die "네트워크 $NETWORK 가 이미 있으나 이 스크립트가 만든 것이 아님"
@@ -124,6 +131,14 @@ cmd_run() {
   fi
   [[ "${ENUM_ALLOW_EMPTY_REFERENCE:-0}" == "1" ]] && fargs+=(--allow-empty-reference)
   [[ "${ENUM_FILES:-0}" == "1" ]] && fargs+=(--files)
+  [[ "${ENUM_INCREMENTAL:-0}" == "1" ]] && fargs+=(--incremental)
+  if [[ -n "${ENUM_KNOWN_KEYS:-}" ]]; then
+    [[ -f "$ENUM_KNOWN_KEYS" ]] || die "ENUM_KNOWN_KEYS 파일 없음"
+    case "$ENUM_KNOWN_KEYS" in
+      *.jsonl|*.ndjson) mounts+=(-v "$ENUM_KNOWN_KEYS:/input/known-keys.jsonl:ro"); fargs+=(--known-keys /input/known-keys.jsonl) ;;
+      *) mounts+=(-v "$ENUM_KNOWN_KEYS:/input/known-keys.csv:ro"); fargs+=(--known-keys /input/known-keys.csv) ;;
+    esac
+  fi
   # shellcheck disable=SC2206
   [[ -n "${ENUM_EXTRA_ARGS:-}" ]] && fargs+=(${ENUM_EXTRA_ARGS})
 

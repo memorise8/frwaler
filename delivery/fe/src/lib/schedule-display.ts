@@ -17,9 +17,32 @@ export const formatScheduleInterval = (hours: number): string => {
 const MODE_LABEL: Readonly<Record<string, string>> = {
   incremental: "증분(새 글만)",
   full: "전체 다시 수집",
+  enum_incremental: "새 수집기 증분(새 글만)",
 };
 
 export const formatScheduleMode = (mode: string): string => MODE_LABEL[mode] ?? mode;
+
+/** Modes the form offers. enum_incremental runs the plan-driven collector through the collect runner. */
+export const SCHEDULE_MODE_OPTIONS: readonly Readonly<{ mode: string; label: string }>[] = [
+  { mode: "incremental", label: "증분(새 글만) — 등록 수집기" },
+  { mode: "enum_incremental", label: "새 수집기 증분(새 글만) — 수집 실행기" },
+];
+
+/**
+ * enum_incremental is bounded by the plan (known_run / max_pages), never by a count, and is
+ * not an unverified registered crawler: it takes no 1회 제한 and no trial confirmation.
+ */
+export const isRunnerScheduleMode = (mode: string): boolean => mode === "enum_incremental";
+
+export const scheduleCreateBody = (mode: string, intervalHours: number, limit: number | null) => ({
+  interval_hours: intervalHours,
+  mode,
+  limit_n: isRunnerScheduleMode(mode) ? null : limit,
+  enabled: true,
+});
+
+export const needsTrialConfirm = (body: { enabled?: boolean; mode?: string }): boolean =>
+  Boolean(body.enabled) && !isRunnerScheduleMode(body.mode ?? "incremental");
 
 export type ScheduleRowState = Readonly<{
   site_id: string;

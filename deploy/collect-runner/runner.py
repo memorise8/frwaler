@@ -43,7 +43,12 @@ CONFIG_DEFAULTS = {
     "trial_max": 1000,
     "large_threshold": 10000,      # 이 이상 예상되면 등록 때 --approved-large 가 있어야 resume 가능
     "fake_cmd": None,              # 시험용: run-pilot 대신 실행할 명령(목록). 운영에서는 null
+    # 증분(incremental)용 이미 납품된 키 파일 폴더: <dir>/<site_id>.csv 또는 .jsonl 이 있으면 --known-keys 로 넘긴다.
+    "known_keys_dir": None,
 }
+MODES = ("trial", "resume", "incremental")
+# 증분은 앞쪽부터 읽는다: 최신순 목록만. crawler/enumeration/incremental.py support() 와 같은 규칙(그쪽이 실행 때 다시 판정).
+FRONT_PAGEABLE = ("last_page_backward",)
 TAG_RE = re.compile(r"^[0-9]{8}([-_][A-Za-z0-9]+)?$")
 SITE_RE = re.compile(r"^[0-9A-Za-z._-]{1,120}$")
 RUN_RE = re.compile(r"^r[0-9]{4,}$")
@@ -181,6 +186,24 @@ def pid_alive(pid, run_id):
 
 # ---------- 요청 판정 ----------
 
+def incremental_refusal(e):
+    """증분 불가 사유(없으면 None). 등록된 plan 사본만 읽는다(표준 라이브러리)."""
+    try:
+        plan = json.load(open(e["plan_file"]))
+        site = dict(plan.get("defaults") or {}, **plan["sites"][e["site_id"]])
+    except (OSError, ValueError, KeyError, TypeError):
+        return "plan_unreadable"
+    strategy = site.get("strategy")
+    order = (site.get("incremental") or {}).get("order") if isinstance(site.get("incremental"), dict) else None
+    if strategy == "oldest_first_sort":
+        return "listing_order_oldest_first"
+    if strategy not in FRONT_PAGEABLE:
+        return "strategy_not_front_pageable:%s" % strategy
+    if order in ("oldest_first", "unknown"):
+        return "listing_order_%s" % order
+    return None
+
+
 def check_request(c, site_id, mode, limit):
     """(None, 정리된 limit) 또는 (이유 코드, 설명)."""
     cfg, reg = config(), registry()
@@ -195,6 +218,13 @@ def check_request(c, site_id, mode, limit):
         limit = cfg["trial_default"] if limit is None else limit
         if type(limit) is not int or not 1 <= limit <= cfg["trial_max"]:
             return "bad_limit", "시험 건수는 1~%d" % cfg["trial_max"]
+    elif mode == "incremental":
+        # 증분은 plan 의 incremental.max_pages(기본 50쪽)로 묶이므로 큰 수집 승인이 필요 없다.
+        if limit is not None:
+            return "bad_limit", "증분에는 건수를 주지 않는다(plan 의 incremental.max_pages 로 묶인다)"
+        why = incremental_refusal(e)
+        if why:
+            return "incremental_unsupported", "증분 불가: %s (최신순 목록 plan 만)" % why
     else:
         if limit is not None:
             return "bad_limit", "이어받기에는 건수를 주지 않는다"
@@ -215,7 +245,7 @@ def check_request(c, site_id, mode, limit):
         return "site_busy", "같은 사이트가 실행기 밖에서 실행 중"
     if e["unit"] in units or c.execute("select 1 from runs where unit=? and status='queued'", (e["unit"],)).fetchone():
         return "unit_busy", "같은 등록 도메인(%s) 작업이 대기·실행 중" % e["unit"]
-    if mode == "resume" and folder_for(c, site_id, assign=False) in folders:
+    if mode in ("resume", "incremental") and folder_for(c, site_id, assign=False) in folders:
         return "folder_busy", "같은 폴더 컨테이너가 실행 중"
     return None, limit
 
@@ -279,7 +309,8 @@ def tick():
                 c.execute("update runs set status='failed', finished_at=?, reason='plan_not_ready' where run_id=? and status='queued'", (now(), r["run_id"]))
                 event(c, "runner", "fail", r["run_id"], r["site_id"], {"reason": "plan_not_ready"})
                 continue
-            tag = r["tag"] or (folder_for(c, r["site_id"]) if r["mode"] == "resume" else "%s-t%s" % (time.strftime("%Y%m%d"), r["run_id"][1:]))
+            # 증분은 이어받기 폴더(그 사이트의 상태 저장소·문서 DB)에서 돈다: 이미 받은 것을 알고, 가져오기 경로도 같다.
+            tag = r["tag"] or (folder_for(c, r["site_id"]) if r["mode"] in ("resume", "incremental") else "%s-t%s" % (time.strftime("%Y%m%d"), r["run_id"][1:]))
             if r["site_id"] in sites or r["unit"] in units or tag in folders:
                 continue
             # 상태·폴더를 먼저 쓰고 나서 실행 프로세스를 띄운다(자식이 빈 폴더 값을 읽지 않게)
@@ -299,8 +330,14 @@ def read_result(tag, site_id):
         c = sqlite3.connect("file:%s?mode=ro" % st, uri=True, timeout=10)
         s = c.execute("select status,stop_reason from enum_site where site_id=?", (site_id,)).fetchone()
         items = dict(c.execute("select status,count(*) from enum_item where site_id=? group by 1", (site_id,)).fetchall())
-        return {"site_status": s[0] if s else None, "stop_reason": s[1] if s else None, "saved": items.get("saved", 0),
-                "failed": items.get("failed_permanent", 0)}
+        out = {"site_status": s[0] if s else None, "stop_reason": s[1] if s else None, "saved": items.get("saved", 0),
+               "failed": items.get("failed_permanent", 0)}
+        st = c.execute("select state from enum_site where site_id=?", (site_id,)).fetchone()
+        inc = (json.loads(st[0] or "{}") if st else {}).get("incremental")
+        if isinstance(inc, dict):
+            out["incremental"] = {k: inc.get(k) for k in ("status", "stop_reason", "requests")}
+            out["incremental"]["saved_new"] = (inc.get("stats") or {}).get("saved_new")
+        return out
     except sqlite3.Error as e:
         return {"error": str(e)[:200]}
 
@@ -319,7 +356,7 @@ def finish(c, r, rc, why=None):
         status, reason = "cancelled", "cancel_requested"
     elif rc == 0:
         status, reason = "done", None
-    elif rc is None and r["mode"] == "resume" and cur["requeues"] < MAX_REQUEUES:
+    elif rc is None and r["mode"] in ("resume", "incremental") and cur["requeues"] < MAX_REQUEUES:
         # 이어받기는 같은 폴더로 다시 돌리면 상태 저장소가 이어받는다: 대기열로 되돌린다(최대 MAX_REQUEUES 번)
         if c.execute("update runs set status='queued', pid=null, requeues=requeues+1, reason='requeued_after_interrupt' where run_id=? and status='running'", (r["run_id"],)).rowcount:
             event(c, "runner", "requeue", r["run_id"], r["site_id"], {"why": why, "requeues": cur["requeues"] + 1})
@@ -374,10 +411,21 @@ def _exec(c, run_id):
     env = dict(os.environ, PATH=cfg["path_prefix"] + ":" + os.environ.get("PATH", "/usr/bin:/bin"),
                ENUM_PILOT_ROOT=cfg["runs_root"], ENUM_PILOT_DATE=tag, ENUM_SEED_HOLDS=cfg["seed_holds"],
                ENUM_ALLOW_EMPTY_REFERENCE="1", ENUM_REFERENCE_DB=cfg["reference_db"])
-    for k in ("ENUM_EXTRA_ARGS", "ENUM_FILES", "ENUM_WITH_BROWSER"):
+    for k in ("ENUM_EXTRA_ARGS", "ENUM_FILES", "ENUM_WITH_BROWSER", "ENUM_INCREMENTAL", "ENUM_KNOWN_KEYS"):
         env.pop(k, None)
     if e.get("files"):
         env["ENUM_FILES"] = "1"
+    if r["mode"] == "incremental":
+        why = incremental_refusal(e)
+        if why:
+            raise RuntimeError("증분 불가: %s" % why)
+        env["ENUM_INCREMENTAL"] = "1"
+        if cfg.get("known_keys_dir"):
+            for ext in (".csv", ".jsonl"):
+                kk = os.path.join(cfg["known_keys_dir"], r["site_id"] + ext)
+                if os.path.isfile(kk):
+                    env["ENUM_KNOWN_KEYS"] = kk
+                    break
     script = os.path.join(e["src"], "deploy", "enum-pilot", "run-pilot.sh")
     steps = [cfg["fake_cmd"]] if cfg.get("fake_cmd") else [[script, "build"], [script, "run", plan, r["site_id"]]]
     rc = 0
@@ -447,7 +495,8 @@ class H(BaseHTTPRequestHandler):
             return self.reply(401, {"reason": "bad_token"})
         p, _, q = self.path.partition("?")
         if p == "/runner/plans":
-            return self.reply(200, [{k: e.get(k) for k in ("site_id", "plan_file", "strategy", "unit", "folder", "expected_items", "approved_large", "ready", "why", "registered_at")}
+            return self.reply(200, [dict({k: e.get(k) for k in ("site_id", "plan_file", "strategy", "unit", "folder", "expected_items", "approved_large", "ready", "why", "registered_at")},
+                                         incremental_refusal=incremental_refusal(e))
                                     for e in registry().values()])
         if p == "/runner/runs":
             m = re.search(r"(?:^|&)site_id=([0-9A-Za-z._-]+)", q)
@@ -482,7 +531,7 @@ class H(BaseHTTPRequestHandler):
             if self.path != "/runner/runs":
                 return self.reply(404, {"reason": "not_found"})
             site_id, mode, limit = data.get("site_id"), data.get("mode"), data.get("limit")
-            if not isinstance(site_id, str) or not SITE_RE.match(site_id) or mode not in ("resume", "trial"):
+            if not isinstance(site_id, str) or not SITE_RE.match(site_id) or mode not in MODES:
                 return self.reply(400, {"reason": "bad_request"})
             reason, x = check_request(c, site_id, mode, limit)
             if reason:

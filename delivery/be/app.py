@@ -80,10 +80,30 @@ class FileBackfillIn(BaseModel):
 class ScheduleIn(BaseModel):
     model_config=ConfigDict(extra="forbid")
     interval_hours:int=Field(ge=1,le=8760)
-    mode:Literal["incremental","full"]="incremental"
+    mode:Literal["incremental","full","enum_incremental"]="incremental"
     limit_n:int|None=Field(default=100,ge=1,le=1000)
     enabled:bool=True
     trial:bool=False
+
+
+def _require_runner_incremental(site_id: str) -> None:
+    """422 unless the collect runner has a ready plan for site_id that can run incrementally."""
+    from delivery.be.collect import RunnerError, runner_call
+    try:
+        code, plans = runner_call("GET", "/runner/plans")
+    except RunnerError as exc:
+        raise HTTPException(status_code=422, detail=f"수집 실행기에 연결하지 못해 증분 가능 여부를 확인할 수 없습니다({exc.reason}).") from None
+    if code != 200 or not isinstance(plans, list):
+        raise HTTPException(status_code=422, detail="수집 실행기 응답을 읽지 못해 증분 가능 여부를 확인할 수 없습니다.")
+    entry = next((p for p in plans if isinstance(p, dict) and p.get("site_id") == site_id), None)
+    if entry is None:
+        raise HTTPException(status_code=422, detail="수집 실행기에 등록된 plan 이 없는 사이트입니다.")
+    if not entry.get("ready"):
+        raise HTTPException(status_code=422, detail="plan 이 실행 가능(ready) 상태가 아닙니다: " + str(entry.get("why") or ""))
+    if "incremental_refusal" not in entry:
+        raise HTTPException(status_code=422, detail="수집 실행기가 증분을 지원하지 않는 버전입니다.")
+    if entry["incremental_refusal"]:
+        raise HTTPException(status_code=422, detail="최신순 목록이 아니라 증분을 쓸 수 없습니다: " + str(entry["incremental_refusal"]))
 
 
 class ObservationIn(BaseModel):
@@ -599,7 +619,14 @@ def create_app(dsn: str) -> FastAPI:
             if conn.execute("SELECT 1 FROM sites WHERE site_id=%s",(site_id,)).fetchone() is None:
                 raise HTTPException(status_code=404,detail="site not found")
             from delivery.capabilities import validate_request, CapabilityError
-            if body.enabled:
+            if body.mode=="enum_incremental":
+                # New plan-driven collector: the host collect runner decides (plan registered, ready,
+                # newest-first listing); a registered crawler's capabilities do not apply.
+                if body.limit_n is not None:
+                    raise HTTPException(status_code=422,detail="enum_incremental 예약에는 1회 제한을 두지 않습니다(plan 의 incremental.max_pages 로 묶입니다).")
+                if body.enabled:
+                    _require_runner_incremental(site_id)
+            elif body.enabled:
                 try:
                     validate_request(site_id, body.mode, trial=body.trial)
                 except CapabilityError as exc:

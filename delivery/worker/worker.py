@@ -432,6 +432,23 @@ def run_cycle(conn, *, worker_id: str, delay: float = 1.0, lease_dsn: str | None
     return translated, crawled
 
 
+def schedule_runner_submit():
+    """enum_incremental schedules go to the host collect runner (mode "incremental").
+    Only when this worker is explicitly given runner access (COLLECT_RUNNER_SOCKET or
+    COLLECT_RUNNER_URL, plus COLLECT_RUNNER_TOKEN[_FILE], as the be service has);
+    otherwise those schedules stay due and nothing is sent."""
+    if not (os.environ.get("COLLECT_RUNNER_SOCKET") or os.environ.get("COLLECT_RUNNER_URL")):
+        return None
+    try:
+        from delivery.be.collect import runner_call
+    except ImportError:
+        return None
+
+    def submit(site_id, mode):
+        return runner_call("POST", "/runner/runs", {"site_id": site_id, "mode": mode, "requested_by": "scheduler"})
+    return submit
+
+
 def main() -> int:
     import argparse
     from crawler import db_pg
@@ -455,8 +472,9 @@ def main() -> int:
             _observe_host(conn,worker_id)
             run_cycle(conn, worker_id=worker_id, delay=args.delay, lease_dsn=args.dsn)
             return 0
+        runner_submit = schedule_runner_submit()
         while True:
-            schedules.enqueue_due(conn)
+            schedules.enqueue_due(conn, runner_submit)
             _observe_host(conn,worker_id)
             translation_jobs.recover_stale(conn)
             jobs.recover_stale(conn)

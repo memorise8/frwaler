@@ -29,7 +29,7 @@ from delivery.be.counts import counts_available
 
 SITE_RE = re.compile(r"^[0-9A-Za-z._-]{1,120}$")
 RUN_RE = re.compile(r"^r[0-9]{4,12}$")
-MODES = ("trial", "resume")
+MODES = ("trial", "resume", "incremental")
 RUNNER_TIMEOUT_SECONDS = 5
 RUNNER_MAX_BODY = 8 * 1024 * 1024
 
@@ -371,7 +371,7 @@ def build_router(conn_factory, cache) -> APIRouter:
         if not isinstance(site_id, str) or not SITE_RE.match(site_id):
             return _error(422, "bad_site_id", "site_id must match ^[0-9A-Za-z._-]{1,120}$")
         if mode not in MODES:
-            return _error(422, "bad_mode", "mode must be trial or resume")
+            return _error(422, "bad_mode", "mode must be trial, resume or incremental")
         if limit is not None and (type(limit) is not int or limit < 1):
             return _error(422, "bad_limit", "limit must be a positive integer or omitted")
         payload = {"site_id": site_id, "mode": mode, "requested_by": operator}

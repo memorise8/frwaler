@@ -529,11 +529,9 @@ class SiteRunner:
         rows = [self.store.item(self.site_id, k) for k in keys]
         return any(r is None or r["status"] == "failed_permanent" for r in rows)
 
-    def run(self, *, refresh=False, retry_only=False):
-        """Enumerate (or resume). A completed site is only re-enumerated with ``refresh``;
-        otherwise (and with ``retry_only``) just the transient item failures are retried."""
+    def _held(self, current, refresh=False):
+        """The result of a run that must not make any request (holds, cooldown), else None."""
         plan, st, site = self.plan, self.store, self.site_id
-        current = st.site(site)
         if current and current["status"] == "access_blocked" and not refresh:
             # Refusals persist across runs and passes; a person must review first.
             return self._result("access_blocked", "access_hold_requires_review")
@@ -554,6 +552,79 @@ class SiteRunner:
         cooldown = (current or {}).get("state", {}).get("cooldown_until")
         if cooldown and cooldown > time.time():
             return self._result("incomplete", "cooling_down", cooldown_until=cooldown)
+        return None
+
+    def run_incremental(self, policy=None, known_keys=None):
+        """Collect only new items from the front of a newest-first listing (see incremental.py).
+        Never moves the full run's segments/cursor or certifies completion."""
+        from .incremental import IncrementalPolicy, support, walk
+        plan, st, site = self.plan, self.store, self.site_id
+        policy = policy or IncrementalPolicy.from_plan(plan)
+        basis, refusal = support(plan)
+        if refusal:
+            # Before any request: an unsupported order is never guessed.
+            st.event(site, "incremental_refused", {"reason": refusal})
+            return self._result("config_error", f"incremental_unsupported:{refusal}", mode="incremental")
+        current = st.site(site)
+        held = self._held(current)
+        if held is not None:
+            held["mode"] = "incremental"
+            return held
+        if current is None:
+            # No full run yet: the row exists so state/holds persist; a later resume starts a normal full pass.
+            st.start_site(site, plan.fingerprint, plan.strategy)
+            st.finish_site(site, "incomplete", "incremental_only")
+            current = st.site(site)
+        state = dict(current.get("state") or {})
+        state.pop("cooldown_until", None)
+        doc_conn = self.adapter.conn
+        duplicates_before = duplicate_rows(doc_conn, site)
+        parser = ListingParser(plan.listing.get("parser"), total_cfg=plan.listing.get("total"), adapter=self.adapter)
+        ctx = Context(site, plan, plan.fingerprint, st, self.fetcher, parser, self.today, state)
+        status, reason, detail = "incremental_complete", None, {}
+        try:
+            from .incremental import FrontWalk
+            self.identity_precheck(FrontWalk(ctx))
+            reason, detail = walk(self, ctx, policy, known_keys, basis)
+        except KeyboardInterrupt:
+            st.save_state(site, ctx.state)
+            raise
+        except BaseException as exc:
+            mapped = self._stop_status(exc, ctx.state)
+            if mapped is None:
+                st.event(site, "incremental_run", {"status": "failed", "reason": f"runner_error:{type(exc).__name__}"})
+                raise
+            status, reason = mapped
+        rollback = getattr(doc_conn, "rollback", None)
+        if rollback and not isinstance(doc_conn, sqlite3.Connection):
+            rollback()
+        duplicates = {"before": duplicates_before, "after": duplicate_rows(doc_conn, site)}
+        duplicates["new"] = max(0, duplicates["after"] - duplicates["before"])
+        if duplicates["new"] > 0 and not self.adapter.cfg.get("allow_shared_post_number"):
+            st.event(site, "new_duplicates", duplicates)
+            status, reason = "failed_duplicates", f"new_duplicate_rows:{duplicates['new']}"
+        summary = {"status": status, "stop_reason": reason, "policy": vars(policy), "order_basis": basis,
+                   "stats": dict(self.stats), "requests": self.fetcher.requests_made, "duplicates": duplicates,
+                   **detail}
+        ctx.state["incremental"] = summary
+        self.record_timing(ctx.state, save=False)
+        if status in ("access_blocked", "review_pending", "private_destination_blocked") or (
+                status == "config_error" and str(reason).startswith(CONTRACT_STOP)):
+            # Refusals become the site status (held), exactly as in the retry-only path.
+            st.finish_site(site, status, reason, ctx.state)
+        else:
+            st.save_state(site, ctx.state)
+        st.event(site, "incremental_run", {k: v for k, v in summary.items() if k != "stats"})
+        return self._result(status, reason, mode="incremental", duplicates=duplicates, **detail)
+
+    def run(self, *, refresh=False, retry_only=False):
+        """Enumerate (or resume). A completed site is only re-enumerated with ``refresh``;
+        otherwise (and with ``retry_only``) just the transient item failures are retried."""
+        plan, st, site = self.plan, self.store, self.site_id
+        current = st.site(site)
+        held = self._held(current, refresh)
+        if held is not None:
+            return held
         finished = current and current["plan_fp"] == plan.fingerprint and \
             current["status"] in COMPLETED
         if retry_only or (finished and not refresh):

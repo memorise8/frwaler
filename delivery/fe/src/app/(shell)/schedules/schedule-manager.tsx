@@ -3,7 +3,7 @@
 import { FormEvent, useState } from "react";
 import { parseScheduleLimit } from "@/lib/crawl-limit";
 import { formatSeoul, SEOUL_LABEL } from "@/lib/seoul-time";
-import { formatScheduleInterval, formatScheduleMode, isScheduleDirty, pendingScheduleSaves, SCHEDULE_INTERVAL_OPTIONS, setScheduleDraft, shownEnabled, type ScheduleDrafts } from "@/lib/schedule-display";
+import { formatScheduleInterval, formatScheduleMode, isRunnerScheduleMode, isScheduleDirty, needsTrialConfirm, pendingScheduleSaves, SCHEDULE_INTERVAL_OPTIONS, SCHEDULE_MODE_OPTIONS, scheduleCreateBody, setScheduleDraft, shownEnabled, type ScheduleDrafts } from "@/lib/schedule-display";
 import { describeScheduleSaveFailure, SCHEDULE_SAVE_NETWORK_ERROR_MESSAGE, type BackendErrorBody } from "@/lib/schedule-save-error";
 
 type Schedule = { id: number; site_id: string; interval_hours: number; mode: string; limit_n: number | null; enabled: boolean; next_run_at: string; last_run_at: string | null };
@@ -16,10 +16,11 @@ export default function ScheduleManager({ initialRows, sites }: { initialRows: S
   // 사용 체크박스의 저장 전 값. 체크만 바꾸면 이 줄이 "저장 필요"가 되고, 변경 저장 버튼이 보낸다.
   const [drafts, setDrafts] = useState<ScheduleDrafts>({});
   const [saving, setSaving] = useState(false);
+  const [mode, setMode] = useState("incremental");
 
-  const save = async (siteId: string, body: object): Promise<boolean> => {
+  const save = async (siteId: string, body: { enabled?: boolean; mode?: string }): Promise<boolean> => {
     setMessage(null);
-    if ("enabled" in body && body.enabled && !trial) { setMessage({text: "미검증 수집기의 시험 예약 실행을 확인해 주세요.", error: true}); return false; }
+    if (needsTrialConfirm(body) && !trial) { setMessage({text: "미검증 수집기의 시험 예약 실행을 확인해 주세요.", error: true}); return false; }
     let response: Response;
     try {
       response = await fetch(`/api/schedules/${encodeURIComponent(siteId)}`, {
@@ -100,13 +101,17 @@ export default function ScheduleManager({ initialRows, sites }: { initialRows: S
     const data = new FormData(form);
     const siteId = String(data.get("site_id") ?? "").trim();
     if (!siteId) return;
-    const limitResult = parseScheduleLimit(data.get("limit_n"));
-    if (!limitResult.ok) {
-      setMessage({ text: limitResult.error, error: true });
-      return;
+    let limit: number | null = null;
+    if (!isRunnerScheduleMode(mode)) {
+      const limitResult = parseScheduleLimit(data.get("limit_n"));
+      if (!limitResult.ok) {
+        setMessage({ text: limitResult.error, error: true });
+        return;
+      }
+      limit = limitResult.limit;
     }
     // 저장에 실패하면 입력을 지우지 않는다(다시 입력하지 않고 고쳐서 재시도할 수 있게).
-    if (await save(siteId, { interval_hours: Number(data.get("interval_hours")), mode: "incremental", limit_n: limitResult.limit, enabled: true })) form.reset();
+    if (await save(siteId, scheduleCreateBody(mode, Number(data.get("interval_hours")), limit))) form.reset();
   };
 
   return (
@@ -115,7 +120,10 @@ export default function ScheduleManager({ initialRows, sites }: { initialRows: S
       <form className="document-filters" onSubmit={(event) => void submit(event)}>
         <label><span>사이트 ID</span><input name="site_id" required placeholder="예: government-se-publications" list="site-options" autoComplete="off" /></label>
         <label><span>수집 주기</span><select name="interval_hours" defaultValue="168">{SCHEDULE_INTERVAL_OPTIONS.map((option) => <option key={option.hours} value={option.hours}>{option.label}</option>)}</select></label>
-        <label><span>1회 수집 제한</span><input name="limit_n" type="number" min="1" max="1000" defaultValue="100" placeholder="예: 100" /></label>
+        <label><span>방식</span><select name="mode" value={mode} onChange={(event) => setMode(event.target.value)}>{SCHEDULE_MODE_OPTIONS.map((option) => <option key={option.mode} value={option.mode}>{option.label}</option>)}</select></label>
+        {isRunnerScheduleMode(mode)
+          ? <p className="run-note">새 수집기 증분은 목록 앞쪽부터 읽어 이미 받은 글이 연속으로 나오면 멈춥니다(쪽수 상한은 plan). 최신순 목록이고 수집 실행기에 준비된 plan 이 있는 사이트만 저장됩니다.</p>
+          : <label><span>1회 수집 제한</span><input name="limit_n" type="number" min="1" max="1000" defaultValue="100" placeholder="예: 100" /></label>}
         <button type="submit">예약 저장</button>
       </form>
       <datalist id="site-options">
@@ -140,7 +148,7 @@ export default function ScheduleManager({ initialRows, sites }: { initialRows: S
                 <tr key={row.id}>
                   <td><code>{row.site_id}</code></td>
                   <td>{formatScheduleInterval(row.interval_hours)}</td>
-                  <td>{formatScheduleMode(row.mode)} · {row.limit_n === null ? "제한 없음" : `${row.limit_n.toLocaleString("ko-KR")}건`}</td>
+                  <td>{formatScheduleMode(row.mode)} · {isRunnerScheduleMode(row.mode) ? "plan 쪽수 상한" : row.limit_n === null ? "제한 없음" : `${row.limit_n.toLocaleString("ko-KR")}건`}</td>
                   <td>
                     <label title="체크를 바꾼 뒤 위의 변경 저장을 눌러야 반영됩니다.">
                       <input

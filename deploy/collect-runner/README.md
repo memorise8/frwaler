@@ -25,10 +25,16 @@ runnerctl list | unregister --site <id>
 
 ## API (127.0.0.1, 머리글 `X-Runner-Token: <.token>`)
 - `GET /runner/plans`, `GET /runner/runs[?site_id=]`, `GET /runner/health`
-- `POST /runner/runs {site_id, mode:"resume"|"trial", limit?, requested_by}` → `201 {run_id}` / `409 {reason, detail}`
+- `POST /runner/runs {site_id, mode:"resume"|"trial"|"incremental", limit?, requested_by}` → `201 {run_id}` / `409 {reason, detail}`
 - `POST /runner/runs/{run_id}/cancel {requested_by}`
 - 409 이유: plan_not_registered, plan_not_ready, bad_limit, large_needs_approval, unit_reserved, site_busy, unit_busy, folder_busy, external_unknown(실행기 밖 컨테이너를 판정 못 함), docker_unavailable, runner_paused
 - 등록 뒤 plan 파일이 바뀌면(sha256) 실행하지 않고 failed. 중단된 이어받기는 최대 3번까지만 자동 재대기.
+- 증분(incremental): `POST /runner/runs {site_id, mode:"incremental"}` (limit 없음). 그 사이트의 이어받기 폴더(상태 저장소·문서 DB)에서
+  `run-pilot.sh` 를 `ENUM_INCREMENTAL=1` 로 돌려 목록 앞쪽부터 새 글만 받고, 이미 아는 항목이 plan 의 `incremental.known_run`(기본 50)건
+  연속이면 멈춘다(`incremental.max_pages` 기본 50쪽 상한이라 큰 수집 승인 불필요). 최신순 목록(plan 이 last_page_backward 이거나
+  `incremental.order: "newest_first"` 선언)만 받고, 그 밖은 `409 incremental_unsupported`. 사이트 하나·도메인 하나씩, plan ready 필수는 같다.
+  config 의 `known_keys_dir` 에 `<site_id>.csv`(site_id,post_number,meta_url — 운영 DB 에서 운영자가 내보낸 것)가 있으면 `--known-keys` 로 넘긴다.
+  결과는 `result.incremental {status, stop_reason, requests, saved_new}`. 받은 문서는 같은 폴더 enum_pilot.db 에 쌓여 가져오기가 그대로 옮긴다.
 - 시험 수집(trial)의 limit 은 "요청 상한"으로 바뀐다: plan 사본의 `max_requests = limit×1.2 + 목록 쪽수 + 10`, `max_pages = ceil(limit/10)`. 수집 틀에 건수 옵션이 없어서다. 결과 `incomplete/request_budget` 가 정상.
 
 ## 기록

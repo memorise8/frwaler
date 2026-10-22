@@ -621,6 +621,11 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
         if not sm.get("sitemap_url") and not sm.get("from_robots"):
             raise PlanError(f"{site_id}: sitemap requires sitemap_url or from_robots")
     _validate_headers(site_id, raw)
+    from .incremental import validate_section
+    try:
+        validate_section(site_id, raw)
+    except ValueError as exc:
+        raise PlanError(str(exc)) from None
     _validate_second_step(site_id, raw.get("adapter") or {})
     _validate_first_tokens(site_id, raw.get("adapter") or {})
     from .http import DEFAULT_MAX_BYTES

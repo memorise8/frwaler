@@ -180,7 +180,10 @@ def make_adapter(plan, conn, crawler_factory=registered_crawler):
 
 def run_site(plan, store, conn, state_dir, *, transport=None, refresh=False, retry_only=False, files=False,
              blob_root=None, today=None, crawler_factory=registered_crawler, log=print, reference_conn=None,
-             identity_required=False, identity_sample=5, identity_threshold=1.0, allow_empty_reference=False):
+             identity_required=False, identity_sample=5, identity_threshold=1.0, allow_empty_reference=False,
+             incremental=None, known_keys=None):
+    """``incremental``: an IncrementalPolicy to collect only new items (front of a newest-first
+    listing) instead of a full/resumed enumeration; ``known_keys``: optional KnownKeys seed."""
     try:
         adapter = make_adapter(plan, conn, crawler_factory)
     except (AdapterConfigError, ValueError) as exc:
@@ -196,10 +199,14 @@ def run_site(plan, store, conn, state_dir, *, transport=None, refresh=False, ret
         store.finish_site(plan.site_id, "config_error", str(exc))
         return {"site_id": plan.site_id, "status": "config_error", "stop_reason": str(exc)}
     try:
-        result = SiteRunner(plan, store, fetcher, adapter, today=today, log=log,
+        runner = SiteRunner(plan, store, fetcher, adapter, today=today, log=log,
                             reference_conn=reference_conn, identity_required=identity_required,
                             identity_sample=identity_sample, identity_threshold=identity_threshold,
-                            allow_empty_reference=allow_empty_reference).run(refresh=refresh, retry_only=retry_only)
+                            allow_empty_reference=allow_empty_reference)
+        if incremental is not None:
+            result = runner.run_incremental(incremental, known_keys)
+        else:
+            result = runner.run(refresh=refresh, retry_only=retry_only)
     finally:
         adapter.close()
     if files:
@@ -254,6 +261,14 @@ def main(argv=None):
                         "'*.example.org' holds every subdomain")
     p.add_argument("--reprocess-failed", action="append", default=[], metavar="REASON_PREFIX",
                    help="give failed items whose reason starts with this prefix a fresh retry (e.g. parse_error:)")
+    p.add_argument("--incremental", action="store_true",
+                   help="collect only new items: read a newest-first listing from the front and stop after "
+                        "known_run consecutive known items (plan 'incremental' section; never a full pass)")
+    p.add_argument("--known-keys", default=None, metavar="FILE",
+                   help="incremental: CSV/JSONL (site_id, post_number, meta_url) of documents already delivered")
+    p.add_argument("--known-run", type=int, default=None, help="incremental: override the plan's known_run")
+    p.add_argument("--incremental-max-pages", type=int, default=None,
+                   help="incremental: override the plan's incremental max_pages")
     p.add_argument("--identity-sample", type=int, default=5)
     p.add_argument("--identity-threshold", type=float, default=1.0)
     args = p.parse_args(argv)
@@ -263,6 +278,11 @@ def main(argv=None):
         p.error("--workers must be within 1..16")
     if args.site and len(set(args.site)) != len(args.site):
         p.error("each --site may be given once (one enumeration per site at a time)")
+    if args.incremental and (args.refresh or args.retry_failed or args.files_only or args.report_only):
+        p.error("--incremental cannot be combined with --refresh, --retry-failed, --files-only or --report-only")
+    if not args.incremental and (args.known_keys or args.known_run is not None
+                                 or args.incremental_max_pages is not None):
+        p.error("--known-keys, --known-run and --incremental-max-pages need --incremental")
     plan_data = load_plan(args.plan)
     sites = args.site or sorted(plan_data["sites"])
     registered = registered_site_ids()
@@ -270,6 +290,20 @@ def main(argv=None):
         plans = [site_plan(plan_data, s, registered=registered) for s in sites]
     except PlanError as exc:
         p.error(str(exc))
+    policies, seeds = {}, {}
+    if args.incremental:
+        from .incremental import IncrementalPolicy, KnownKeys
+        for plan in plans:
+            try:
+                policies[plan.site_id] = IncrementalPolicy.from_plan(plan, known_run=args.known_run,
+                                                                     max_pages=args.incremental_max_pages)
+            except (TypeError, ValueError) as exc:
+                p.error(f"{plan.site_id}: {exc}")
+            if args.known_keys:
+                try:
+                    seeds[plan.site_id] = KnownKeys.load(args.known_keys, plan.site_id)
+                except (OSError, ValueError) as exc:
+                    p.error(f"--known-keys: {exc}")
     state_dir = Path(args.state_dir)
     store = Store(state_dir / "enumeration.sqlite")
     if args.seed_holds:
@@ -334,7 +368,8 @@ def main(argv=None):
                             files=args.files, blob_root=args.blob_root, reference_conn=reference,
                             identity_required=plan.site_id in registered, identity_sample=args.identity_sample,
                             identity_threshold=args.identity_threshold,
-                            allow_empty_reference=args.allow_empty_reference)
+                            allow_empty_reference=args.allow_empty_reference,
+                            incremental=policies.get(plan.site_id), known_keys=seeds.get(plan.site_id))
         finally:
             if reference is not None:
                 reference.close()
