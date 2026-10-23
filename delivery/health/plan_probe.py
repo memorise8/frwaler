@@ -1,7 +1,8 @@
 """Listing page 1 health probe built from the collectors' own enumeration plans.
 
 python -m delivery.health.plan_probe --plans-dir DIR [--site ID ...] [--exclude-file CSV]
-    --report-dir DIR --gate-dir DIR [--workers 1..4] [--interval-hours 0|>=48] [--dry-run]
+    [--extra-holds-file FILE] --report-dir DIR --gate-dir DIR [--workers 1..4]
+    [--interval-hours 0|>=48] [--dry-run]
 
 Every request goes through ``crawler.enumeration.http.Fetcher``: robots.txt is read first, the
 collector's own User-Agent is sent, and each host has one file-locked ``RequestGate`` under
@@ -9,8 +10,11 @@ collector's own User-Agent is sent, and each host has one file-locked ``RequestG
 least ``request_interval_s`` >= 1.5 s after the previous response ended, across threads and
 processes). Probe settings: one attempt per request (retries=1, no backoff), the first 429 stops
 the site and writes a host cooldown into the gate (rate_limit_stop=1), no listing retry
-(listing_retry.max 0), 401/403/407/451, 429, challenges and login redirects hold the host for the
-rest of the scan. Only the plan's first listing request is made, parsed with the plan's parser;
+(listing_retry.max 0). 401/403/407/451, 429, challenges, login pages and robots refusals hold the
+host in <report-dir>/holds.json until an operator removes the entry; held hosts (and the read-only
+--extra-holds-file hosts, e.g. collector holds) get no request: their sites are blocked/host_held.
+With --interval-hours the next scan starts that long after the previous scan's start (read from
+scan.json on restart). Only the plan's first listing request is made, parsed with the plan's parser;
 a strategy that needs one prerequisite request (dynamic values, segment hub, robots sitemap
 list) makes exactly that one, anything needing more is skipped as ``unsupported``.
 
@@ -36,6 +40,7 @@ from urllib.parse import parse_qsl, urlsplit
 import xml.etree.ElementTree as ET
 import zlib
 
+from crawler.enumeration.adapters import AdapterConfigError
 from crawler.enumeration.guard import AdapterUngatedNetwork, guarded
 from crawler.enumeration.http import (DEFAULT_USER_AGENT, AccessBlocked, BudgetExhausted, EnumerationStop, Fetcher,
                                       LoginReview, PermanentFailure, PrivateDestination, RateLimited,
@@ -57,22 +62,57 @@ MAX_REQUESTS = 8      # robots (per origin) + one prerequisite + page 1 + redire
 MAX_RUNTIME_S = 300
 MAX_REDIRECTS = 3
 LOG_NAME = "requests.jsonl"
+HOLDS_NAME = "holds.json"
+_HOST = re.compile(r"[a-z0-9.:-]{1,253}")
+
+
+def _code(value):
+    """A short code from an exception reason (its part before ':'); never free text."""
+    head = str(value or "").split(":", 1)[0]
+    return head if re.fullmatch(r"[a-z0-9_]{1,40}", head) else "other"
 
 
 class ScanHolds:
-    """Hosts refused during this scan (Fetcher holds interface). Never persisted."""
+    """Refused hosts (Fetcher holds interface). New holds are written to ``path`` (holds.json) and
+    kept until an operator removes the entry; ``extra`` hosts (e.g. collector holds) are only read.
+    An unreadable holds file stops the scan rather than being read as "no holds"."""
 
-    def __init__(self):
+    def __init__(self, path=None, extra=()):
         self._lock = threading.Lock()
-        self._hosts = {}
+        self.path = Path(path) if path is not None else None
+        self._hosts = {host: {"reason": "extra_hold", "site_id": None} for host in extra}
+        self._hosts.update(self._read())
+
+    def _read(self):
+        if self.path is None or not self.path.exists():
+            return {}
+        data = json.loads(self.path.read_text())
+        hosts = data.get("hosts") if isinstance(data, dict) else None
+        if not isinstance(hosts, dict):
+            raise ValueError("invalid holds file")
+        return {str(host).lower(): entry for host, entry in hosts.items()}
 
     def host_hold(self, host):
         with self._lock:
             return self._hosts.get((host or "").lower())
 
     def hold_host(self, host, reason, url=None, site_id=None):
+        host = (host or "").lower()
+        if not host:
+            return
         with self._lock:
-            self._hosts.setdefault(host.lower(), {"reason": reason, "site_id": site_id})
+            if host in self._hosts:
+                return
+            entry = {"reason": _code(reason), "site_id": site_id, "held_at": utc_now()}
+            self._hosts[host] = entry
+            if self.path is not None:
+                hosts = self._read()  # an entry the operator removed meanwhile stays removed
+                hosts.setdefault(host, entry)
+                atomic_json(self.path, {"hosts": hosts, "note": "remove a host to let the probe request it again"})
+
+    def __len__(self):
+        with self._lock:
+            return len(self._hosts)
 
 
 class _NullStore:
@@ -115,7 +155,7 @@ class LoggedTransport:
         host = host_only(url) or ""
         held = self.holds.host_hold(host)
         if held:
-            raise AccessBlocked(f"host_access_hold:{held['reason']}", url)
+            raise AccessBlocked("host_held", url)
         parts = urlsplit(url)
         origin = (parts.scheme, host)
         kind = "page"
@@ -135,6 +175,12 @@ class LoggedTransport:
             record.update(status=resp.status, outcome=_outcome(resp.status))
             if resp.status in REFUSAL_STATUSES:
                 self.holds.hold_host(host, f"http_{resp.status}", None, self.site_id)
+            elif resp.status >= 500 and Fetcher._challenge(resp):
+                # A challenge page sent with a 5xx status: the Fetcher alone would read it as a
+                # server error. For the probe it is a challenge (host held, never retried).
+                record["outcome"] = "challenge"
+                self.holds.hold_host(host, "challenge", None, self.site_id)
+                raise AccessBlocked("challenge", url, resp.status)
             return resp
         finally:
             end = time.time()
@@ -215,6 +261,22 @@ def _crawler(site_id, conn):
         return registered_crawler(site_id, conn)
 
 
+def plan_hosts(plan):
+    """Every host the plan's page 1 (and its prerequisite) can be requested from."""
+    urls = (plan.listing.get("url"), plan.listing.get("first_page_url"), plan.base_url,
+            (plan.listing.get("dynamic") or {}).get("url"), plan.section("segments").get("hub_url"),
+            plan.section("sitemap").get("sitemap_url"), plan.section("sitemap").get("robots_url"))
+    return {host for host in map(host_only, filter(None, urls)) if host}
+
+
+class ListingEnd(Exception):
+    """Page 1 answered as an end of the listing (404/410, a plan end status, a blank body)."""
+
+    def __init__(self, status):
+        super().__init__("listing_end")
+        self.status = status
+
+
 def build_strategy(plan, fetcher):
     """The collector's parser and strategy objects for ``plan`` (as SiteRunner builds them),
     over a scratch in-memory documents DB (nothing is saved)."""
@@ -256,16 +318,23 @@ def read_page1(strategy, plan):
         locs = [next(((c.text or "").strip() for c in node if _tag(c) == "loc"), "") for node in root]
         return sum(1 for loc in locs if loc and strategy.wanted(loc)), sum(1 for loc in locs if not loc)
     page = strategy.fetch_page(page1_request(strategy, plan))
+    if page.extra.get("end_status") is not None or (page.extra.get("explicit_empty") and page.status in (404, 410)):
+        raise ListingEnd(page.status)  # an end page on page 1 is not an empty source
     return len(page.items), sum(1 for item in page.items if not item.url)
 
 
-def classify(exc):
-    """(state, short reason) for a probe that ended with ``exc``."""
-    reason = str(getattr(exc, "reason", "") or type(exc).__name__)[:80]
-    if isinstance(exc, AdapterUngatedNetwork):
-        return "configuration", reason
-    if isinstance(exc, (PlanError, FileNotFoundError, json.JSONDecodeError)):
+def classify(exc, phase="page1"):
+    """(state, short reason code) for a probe that ended with ``exc`` in ``phase``
+    (plan: loading the plan file, setup: fetcher/parser/adapter, page1: the requests)."""
+    reason = _code(getattr(exc, "reason", None))
+    if phase == "plan":
         return "configuration", "plan_missing" if isinstance(exc, FileNotFoundError) else "plan_invalid"
+    if isinstance(exc, ListingEnd):
+        return "error", f"listing_http_{exc.status}"
+    if isinstance(exc, AdapterUngatedNetwork):
+        return "configuration", "adapter_ungated_network"
+    if isinstance(exc, PlanError):
+        return "configuration", "plan_invalid"
     if isinstance(exc, PrivateDestination):
         return "configuration", "private_destination"
     if isinstance(exc, RobotsDisallowed):
@@ -273,38 +342,48 @@ def classify(exc):
     if isinstance(exc, RateLimited):
         return ("blocked", reason) if exc.status == 429 else ("network_error", reason)
     if isinstance(exc, RobotsUnavailable):
-        return ("timeout" if "timeout" in reason.lower() else "network_error"), reason
+        return ("timeout" if "timeout" in str(exc.reason).lower() else "network_error"), reason
     if isinstance(exc, LoginReview):
         return "blocked", "login_form"
     if isinstance(exc, AccessBlocked):
-        return "blocked", reason
+        return "blocked", "host_held" if reason in ("host_held", "host_access_hold") else reason
     if isinstance(exc, StrategyStop):
         return ("configuration" if exc.status == "config_error" else "error"), reason
     if isinstance(exc, TransientFailure):
         if exc.status == 429:
             return "blocked", "rate_limited"
-        return ("timeout" if "timeout" in reason.lower() else "network_error"), reason
+        if "timeout" in str(exc.reason).lower():
+            return "timeout", "timeout"
+        return "network_error", f"http_{exc.status}" if exc.status else reason
     if isinstance(exc, PermanentFailure):
-        if reason.startswith("listing_parse_error") or reason == "body_too_large":
+        if reason in ("listing_parse_error", "body_too_large"):
             return "invalid_data", reason
-        return ("configuration" if reason.startswith("invalid_") else "error"), reason
+        if reason.startswith("invalid_"):
+            return "configuration", reason
+        return "error", f"listing_http_{exc.status}" if exc.status else reason
     if isinstance(exc, (ET.ParseError, EOFError, zlib.error, _SitemapTooLarge)):
-        return "invalid_data", f"sitemap_{type(exc).__name__}"
-    if isinstance(exc, ValueError):  # AdapterConfigError, ContractError, preset errors
+        return "invalid_data", "sitemap_unreadable"
+    if isinstance(exc, AdapterConfigError) or (isinstance(exc, ValueError) and phase == "setup"):
         return "configuration", "adapter_or_plan_config"
+    if isinstance(exc, ValueError):  # broken JSON or markup in the page-1 response
+        return "invalid_data", "response_unreadable"
     if isinstance(exc, BudgetExhausted):
         return "error", reason
-    return "error", reason
+    return "error", "unexpected"
 
 
 def _finish_log(records, reason):
     """Name the response that ended the site where its status alone does not say it."""
     if reason == "robots_disallowed":
-        target, outcome = [r for r in records if r["kind"] == "robots"], "robots"
-    elif reason.startswith(("challenge", "login")) or reason == "robots_challenge":
-        target, outcome = [r for r in records if r["outcome"] == "ok"], "login" if "login" in reason else "challenge"
+        kind, outcome = "robots", "robots"
+    elif reason in ("challenge", "robots_challenge", "login_form", "login_redirect", "robots_login_redirect"):
+        kind = "robots" if reason.startswith("robots") else "page"
+        outcome = "login" if "login" in reason else "challenge"
     else:
         return
+    if any(r["outcome"] == outcome for r in records):
+        return  # already named by the transport (a challenge sent with a 5xx status)
+    target = [r for r in records if r["kind"] == kind and r["outcome"] in ("ok", "redirect", "not_found")]
     if target:
         target[-1]["outcome"] = outcome
 
@@ -316,30 +395,37 @@ def probe_site(site_id, plans_dir, *, gate_dir, holds, log, transport_factory=de
               "sample_count": 0, "invalid_count": 0, "http_errors": 0, "exception_type": None,
               "scope": SCOPE, "probe": PROBE, "source_hash": source_hash, "plan_fingerprint": None,
               "prerequisite": None, "requests": 0}
-    transport, conn = None, None
+    transport, conn, phase = None, None, "plan"
     try:
         plan = load_site_plan(plans_dir, site_id, registered)
+        phase = "setup"
         result["plan_fingerprint"] = plan.fingerprint
         needed, refusal = prerequisite(plan)
         result["prerequisite"] = needed
         if refusal:
             result.update(state="unsupported", reason=refusal)
+        elif any(holds.host_hold(host) for host in plan_hosts(plan)):
+            result.update(state="blocked", reason="host_held")  # no request at all
         else:
             transport = LoggedTransport(transport_factory(plan), site_id, holds)
             fetcher = make_fetcher(plan, transport, gate_dir, holds)
             strategy, conn = build_strategy(plan, fetcher)
+            phase = "page1"
             items, invalid = read_page1(strategy, plan)
             if items is None:
                 result.update(state="partial", reason="sitemap_index_children_not_fetched")
+            elif items and invalid == items:
+                result.update(sample_count=items, invalid_count=invalid, state="invalid_data", reason="items_invalid")
             else:
                 result.update(sample_count=items, invalid_count=invalid,
                               state="healthy" if items else "empty", reason="items" if items else "no_items")
     except (Exception, EnumerationStop) as exc:
-        state, reason = classify(exc)
+        state, reason = classify(exc, phase)
+        # Only the exception type: its text may carry URLs or response content.
         result.update(state=state, reason=reason, exception_type=type(exc).__name__)
-        if state == "configuration" and isinstance(exc, ValueError):
-            # Plan/adapter validation messages name keys and environment variables, never values.
-            result["detail"] = str(exc)[:200]
+        if state == "blocked" and reason != "host_held":
+            # Robots refusals and login pages are no host hold in the Fetcher; for the probe they are.
+            holds.hold_host(host_only(getattr(exc, "url", None)), reason, None, site_id)
     finally:
         if conn is not None:
             conn.close()
@@ -364,6 +450,34 @@ def read_excludes(path):
     return out
 
 
+def read_extra_holds(path):
+    """One host per line (# comments allowed). Read only: never written back."""
+    hosts = set()
+    if path is None:
+        return hosts
+    for line in Path(path).read_text(encoding="utf-8-sig").splitlines():
+        host = line.split("#", 1)[0].strip().lower()
+        if not host:
+            continue
+        if not _HOST.fullmatch(host):
+            raise ValueError("invalid host in extra holds file")
+        hosts.add(host)
+    return hosts
+
+
+def due_in(report_dir, interval_s, now=None):
+    """Seconds until the next scan: ``interval_s`` after the previous scan's start (scan.json),
+    so a restart does not rescan at once. 0 without a readable previous scan."""
+    try:
+        started = datetime.fromisoformat(json.loads((Path(report_dir) / "scan.json").read_text())["started_at"])
+        if started.tzinfo is None:
+            return 0.0
+        wait = started.timestamp() + interval_s - (time.time() if now is None else now)
+    except (OSError, ValueError, KeyError, TypeError):
+        return 0.0
+    return min(max(0.0, wait), interval_s)
+
+
 def plan_site_ids(plans_dir):
     return sorted(p.stem for p in Path(plans_dir).glob("*.json")
                   if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._-]{0,199}", p.stem))
@@ -381,7 +495,7 @@ def registered_ids():
 
 
 def run_scan(plans_dir, report_dir, gate_dir, *, sites=None, excludes=None, workers=2,
-             transport_factory=default_transport, source_hashes=None, registered=None):
+             transport_factory=default_transport, source_hashes=None, registered=None, extra_holds=()):
     report_dir, gate_dir = Path(report_dir), Path(gate_dir)
     report_dir.mkdir(parents=True, exist_ok=True)
     gate_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -398,8 +512,9 @@ def run_scan(plans_dir, report_dir, gate_dir, *, sites=None, excludes=None, work
         except Exception as exc:  # results stay valid; the reader shows them as code_changed
             source_hashes, scan["source_hash_error"] = {}, type(exc).__name__
     registered = registered_ids() if registered is None else registered
+    holds, log, counts = ScanHolds(report_dir / HOLDS_NAME, extra_holds), RequestLog(report_dir / LOG_NAME), Counter()
+    scan["held_hosts_at_start"] = len(holds)
     atomic_json(report_dir / "scan.json", scan)
-    holds, log, counts = ScanHolds(), RequestLog(report_dir / LOG_NAME), Counter()
     with ThreadPoolExecutor(max_workers=workers) as executor:
         futures = [executor.submit(probe_site, site_id, plans_dir, gate_dir=gate_dir, holds=holds, log=log,
                                    transport_factory=transport_factory, registered=registered,
@@ -414,7 +529,7 @@ def run_scan(plans_dir, report_dir, gate_dir, *, sites=None, excludes=None, work
             atomic_json(report_dir / "scan.json", scan)
             print(json.dumps({k: result[k] for k in ("site_id", "state", "reason", "requests")}), flush=True)
     scan.update(finished_at=utc_now(), totals=dict(counts), requests=len(log.spans),
-                per_host_min_gap_s=log.min_gaps())
+                per_host_min_gap_s=log.min_gaps(), held_hosts=len(holds))
     atomic_json(report_dir / "scan.json", scan)
     return scan
 
@@ -466,6 +581,7 @@ def main(argv=None):
     parser.add_argument("--plans-dir", type=Path, required=True, help="one-site plan JSONs named <site_id>.json")
     parser.add_argument("--site", action="append", help="probe only this site (repeatable)")
     parser.add_argument("--exclude-file", type=Path, help="CSV site_id,reason: never requested, no result file")
+    parser.add_argument("--extra-holds-file", type=Path, help="hosts never requested, one per line (read only)")
     parser.add_argument("--report-dir", type=Path, required=True)
     parser.add_argument("--gate-dir", type=Path, required=True, help="shared per-host request gates")
     parser.add_argument("--workers", type=int, default=2)
@@ -478,8 +594,9 @@ def main(argv=None):
         for site_id in args.site or ():
             site_path(args.report_dir, site_id)
         excludes = read_excludes(args.exclude_file)
+        extra_holds = read_extra_holds(args.extra_holds_file)
     except (OSError, ValueError) as exc:
-        parser.error(f"invalid site selection or exclude file: {type(exc).__name__}")
+        parser.error(f"invalid site selection, exclude or extra holds file: {type(exc).__name__}")
     if args.dry_run:
         sites = list(dict.fromkeys(args.site)) if args.site else plan_site_ids(args.plans_dir)
         dry_run(args.plans_dir, [s for s in sites if s not in excludes], registered_ids())
@@ -490,12 +607,14 @@ def main(argv=None):
             fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             parser.exit(2, "another health scan is running\n")
+        interval = args.interval_hours * 3600
         while True:
+            if interval:
+                time.sleep(due_in(args.report_dir, interval))  # scheduled from the last scan's start
             run_scan(args.plans_dir, args.report_dir, args.gate_dir, sites=args.site, excludes=excludes,
-                     workers=args.workers)
-            if not args.interval_hours:
+                     workers=args.workers, extra_holds=extra_holds)
+            if not interval:
                 return 0
-            time.sleep(args.interval_hours * 3600)
 
 
 if __name__ == "__main__":

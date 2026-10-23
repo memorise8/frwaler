@@ -11,7 +11,7 @@ from pathlib import Path
 STATES = {"healthy", "partial", "empty", "blocked", "network_error", "timeout",
           "configuration", "error", "unsupported", "invalid_data"}
 FIELDS = {"site_id", "state", "checked_at", "elapsed_s", "sample_count", "invalid_count",
-          "source_hash", "http_errors", "exception_type", "scope"}
+          "source_hash", "http_errors", "exception_type", "scope", "reason"}
 
 
 def utc_now() -> str:

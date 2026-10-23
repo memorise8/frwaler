@@ -19,7 +19,12 @@ python -m delivery.health.plan_probe --plans-dir /srv/collect-runner/registry/pl
 
 `--exclude-file`(site_id,reason) 사이트는 요청하지 않고 결과 파일도 만들지 않아 「미검사」로
 남으며, `scan.json`에 사유별로 집계됩니다. `--dry-run`은 첫 요청의 호스트·경로·인자 이름만
-출력합니다. `--interval-hours 48`은 48시간마다 재검사합니다(0은 1회).
+출력합니다. `--interval-hours 48`은 직전 검사의 시작 시각(`scan.json`의 `started_at`)부터
+48시간 뒤에 다음 검사를 시작합니다(재시작해도 바로 다시 검사하지 않음, 0은 1회).
+
+401/403/407/451·429·챌린지·로그인 화면·robots 거부가 나온 호스트는 `<report-dir>/holds.json`에
+기록되고, 운영자가 그 항목을 지울 때까지 요청하지 않습니다(해당 사이트는 `blocked`/`host_held`).
+수집기 쪽 보류 호스트는 `--extra-holds-file`(한 줄에 호스트 하나)로 넘기며 이 파일은 읽기만 합니다.
 
 이 1차 검사의 범위는 소량 메타데이터 접속·파싱입니다. 실제 DB 저장, 신규 건수 반복,
 중단·재개, PDF/TXT 처리, 원본 총량·전체 완전성은 별도 인수 항목으로 남습니다.

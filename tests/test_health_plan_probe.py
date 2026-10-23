@@ -1,4 +1,5 @@
 """delivery.health.plan_probe: listing page 1 only, governed Fetcher, fake transport (no network)."""
+import ast
 import contextlib
 import fcntl
 import io
@@ -149,25 +150,28 @@ class PlanProbeTest(unittest.TestCase):
         transport, _ = self.scan(self.router(lambda url: Response(429, {"retry-after": "5"})))
         first, second = self.result("a-site"), self.result("b-site")
         self.assertEqual(first["state"], "blocked")
-        self.assertEqual(second["state"], "blocked")
+        self.assertEqual((second["state"], second["reason"]), ("blocked", "host_held"))
         self.assertEqual(second["requests"], 0)  # same host: nothing sent after the 429
         self.assertEqual([u for _, u, _ in transport.requests], [ROBOTS, "https://board.test/list?page=1"])
         self.assertEqual(self.log()[-1]["outcome"], "429")
 
     def test_403_and_challenge_are_blocked_without_retry(self):
         for name, page, reason in (("forbidden", lambda url: html("no", 403), "access_refused"),
-                                   ("challenge", lambda url: html(CHALLENGE, url=url), "challenge")):
+                                   ("challenge", lambda url: html(CHALLENGE, url=url), "challenge"),
+                ("challenge-503", lambda url: html(CHALLENGE, 503, url=url), "challenge")):
             with self.subTest(name):
                 for f in self.plans.glob("*.json"):
                     f.unlink()
                 shutil.rmtree(self.gates, ignore_errors=True)
+                (self.report / "holds.json").unlink(missing_ok=True)
                 self.add_plan(name)
                 transport, _ = self.scan(self.router(page))
                 result = self.result(name)
                 self.assertEqual(result["state"], "blocked")
-                self.assertTrue(result["reason"].startswith(reason), result["reason"])
+                self.assertEqual(result["reason"], reason)
                 self.assertEqual(len(transport.requests), 2)  # robots + one listing request
                 self.assertEqual(self.log()[-1]["outcome"], "blocked" if name == "forbidden" else "challenge")
+                self.assertIn("board.test", json.loads((self.report / "holds.json").read_text())["hosts"])
 
     def test_5xx_is_network_error_without_retry(self):
         self.add_plan("a-site")
@@ -237,6 +241,146 @@ class PlanProbeTest(unittest.TestCase):
         with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit):
             plan_probe.main(["--plans-dir", str(self.plans), "--report-dir", str(self.report),
                              "--gate-dir", str(self.gates), "--interval-hours", "24"])
+
+
+    def test_holds_persist_until_operator_removes_them(self):
+        self.add_plan("a-site")
+        self.scan(self.router(lambda url: html("no", 403)))
+        holds = json.loads((self.report / "holds.json").read_text())
+        self.assertEqual(holds["hosts"]["board.test"]["reason"], "http_403")
+        transport, scan = self.scan(self.router(lambda url: html(LIST_HTML, url=url)))
+        self.assertEqual((self.result("a-site")["state"], self.result("a-site")["reason"]), ("blocked", "host_held"))
+        self.assertEqual((transport.requests, self.result("a-site")["requests"]), ([], 0))
+        (self.report / "holds.json").write_text(json.dumps({"hosts": {}}))
+        transport, _ = self.scan(self.router(lambda url: html(LIST_HTML, url=url)))
+        self.assertEqual(self.result("a-site")["state"], "healthy")
+
+    def test_robots_refusal_and_login_page_are_held(self):
+        for name, robots, page, reason in (
+                ("robots", "User-agent: *\nDisallow: /\n", lambda url: html(LIST_HTML), "robots_disallowed"),
+                ("login", None, lambda url: html("<html><head><title>Login</title></head><body><form>"
+                                                 "<input type='password'></form></body></html>", url=url),
+                 "login_form")):
+            with self.subTest(name):
+                (self.report / "holds.json").unlink(missing_ok=True)
+                self.add_plan(name)
+                self.scan(self.router(page, robots=robots), sites=[name])
+                self.assertEqual(self.result(name)["reason"], reason)
+                self.assertEqual(json.loads((self.report / "holds.json").read_text())["hosts"]["board.test"]["reason"],
+                                 reason)
+
+    def test_extra_holds_are_never_requested_or_written(self):
+        self.add_plan("a-site")
+        folder = Path(self.tmp.name)
+        (folder / "extra.txt").write_text("# collector holds\nBoard.Test\n")
+        transport, _ = self.scan(self.router(lambda url: html(LIST_HTML, url=url)),
+                                 extra_holds=plan_probe.read_extra_holds(folder / "extra.txt"))
+        self.assertEqual((self.result("a-site")["state"], self.result("a-site")["reason"]), ("blocked", "host_held"))
+        self.assertEqual(transport.requests, [])
+        self.assertFalse((self.report / "holds.json").exists())
+        (folder / "bad.txt").write_text("https://board.test/x\n")
+        with self.assertRaises(ValueError):
+            plan_probe.read_extra_holds(folder / "bad.txt")
+
+    def test_end_pages_on_page1_are_errors_not_empty(self):
+        cases = (("gone", {}, lambda url: html("missing", 404), "listing_http_404"),
+                 ("blank", {"end_on_blank_body": True}, lambda url: html("", url=url), "listing_http_200"),
+                 ("endstatus", {"end_statuses": [{"status": 400, "body_regex": "no more"}]},
+                  lambda url: html("no more", 400), "listing_http_400"))
+        for name, listing, page, reason in cases:
+            with self.subTest(name):
+                self.add_plan(name, **listing)
+                self.scan(self.router(page), sites=[name])
+                self.assertEqual((self.result(name)["state"], self.result(name)["reason"]), ("error", reason))
+                (self.report / "holds.json").unlink(missing_ok=True)
+
+    def test_unreadable_page_and_invalid_items_are_invalid_data(self):
+        self.add_plan("a-site")
+        handler = self.router(lambda url: html(LIST_HTML, url=url))
+        with patch.object(plan_probe, "read_page1", side_effect=ValueError("secret-text https://x/?k=v")):
+            self.scan(handler)
+        result = self.result("a-site")
+        self.assertEqual((result["state"], result["reason"], result["exception_type"]),
+                         ("invalid_data", "response_unreadable", "ValueError"))
+        self.assertNotIn("secret-text", (self.report / "a-site.json").read_text())
+        with patch.object(plan_probe, "read_page1", return_value=(2, 2)):
+            self.scan(handler)
+        self.assertEqual((self.result("a-site")["state"], self.result("a-site")["reason"]),
+                         ("invalid_data", "items_invalid"))
+
+    def test_broken_plan_file_is_configuration(self):
+        (self.plans / "a-site.json").write_text("{not json")
+        self.scan(self.router(lambda url: html(LIST_HTML)))
+        self.assertEqual((self.result("a-site")["state"], self.result("a-site")["reason"]),
+                         ("configuration", "plan_invalid"))
+
+    def test_reason_reaches_the_reader(self):
+        self.add_plan("a-site")
+        self.scan(self.router(lambda url: html("no", 403)), source_hashes={"a-site": "h"})
+        result = self.result("a-site")
+        shown = read_result(self.report, {"site_id": "a-site", "source_hash": "h"},
+                            now=datetime.fromisoformat(result["checked_at"]))
+        self.assertEqual((shown["state"], shown["reason"]), ("blocked", "access_refused"))
+
+    def test_next_scan_is_scheduled_from_previous_start(self):
+        self.report.mkdir()
+        started = datetime.fromtimestamp(self.clock.now - 10 * 3600).astimezone()
+        (self.report / "scan.json").write_text(json.dumps({"started_at": started.isoformat()}))
+        self.assertAlmostEqual(plan_probe.due_in(self.report, 48 * 3600), 38 * 3600, delta=1)
+        self.assertEqual(plan_probe.due_in(self.report / "missing", 48 * 3600), 0)
+        sleeps, scans = [], []
+
+        class Stop(Exception):
+            pass
+
+        def sleep(seconds):
+            sleeps.append(round(seconds))
+            if len(sleeps) == 2:
+                raise Stop()
+
+        def scan(*args, **kwargs):
+            scans.append(len(sleeps))
+            now = datetime.fromtimestamp(self.clock.now).astimezone()
+            (self.report / "scan.json").write_text(json.dumps({"started_at": now.isoformat()}))
+            self.clock.now += 3 * 3600  # the scan itself takes 3 hours
+
+        with patch.object(self.clock, "sleep", side_effect=sleep), patch.object(plan_probe, "run_scan", scan), \
+                self.assertRaises(Stop):
+            plan_probe.main(["--plans-dir", str(self.plans), "--report-dir", str(self.report),
+                             "--gate-dir", str(self.gates), "--interval-hours", "48"])
+        self.assertEqual(scans, [1])  # waited before the first scan of a restarted service
+        self.assertEqual(sleeps, [38 * 3600, 45 * 3600])  # 48 h from the scan's start, not its end
+
+
+# Names plan_probe takes from crawler/*. All exist at product commit 6878d66d, the lane checkout
+# mounted over /app/crawler; anything new must stay inside delivery/health.
+CRAWLER_IMPORTS_AT_6878D66D = {
+    "crawler.enumeration.adapters": {"AdapterConfigError"},
+    "crawler.enumeration.guard": {"AdapterUngatedNetwork", "guarded"},
+    "crawler.enumeration.http": {"DEFAULT_USER_AGENT", "AccessBlocked", "BudgetExhausted", "EnumerationStop",
+                                 "Fetcher", "LoginReview", "PermanentFailure", "PrivateDestination", "RateLimited",
+                                 "REFUSAL_STATUSES", "RequestsTransport", "RobotsDisallowed", "RobotsUnavailable",
+                                 "TransientFailure", "TransportError"},
+    "crawler.enumeration.parsing": {"ListingParser"},
+    "crawler.enumeration.plan": {"MIN_INTERVAL_S", "PlanError", "SitePlan", "header_hosts", "load_plan",
+                                 "resolve_headers", "site_plan"},
+    "crawler.enumeration.runner": {"Context"},
+    "crawler.enumeration.strategies": {"STRATEGIES", "PostUrl", "StrategyStop", "_SitemapTooLarge", "_tag",
+                                       "generate_segments", "today_from"},
+    "crawler.enumeration.run": {"make_adapter", "registered_crawler", "registered_site_ids"},
+    "crawler": {"db_libertree"},
+}
+
+
+class CrawlerCompatTest(unittest.TestCase):
+    def test_only_names_present_at_6878d66d(self):
+        tree = ast.parse(Path(plan_probe.__file__).read_text())
+        used = {}
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ImportFrom) and node.module and node.module.split(".")[0] == "crawler":
+                used.setdefault(node.module, set()).update(a.name for a in node.names)
+        for module, names in used.items():
+            self.assertLessEqual(names, CRAWLER_IMPORTS_AT_6878D66D.get(module, set()), module)
 
 
 class LegacyRunnerRefusesTest(unittest.TestCase):

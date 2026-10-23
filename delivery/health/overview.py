@@ -21,7 +21,7 @@ def crawler_overview(root: Path | None = None) -> dict:
              for site in data["sites"]]
     return {"sites": sites, "registry_errors": data["registry_errors"], "measured_at": now.isoformat(),
             "summary": {**data["summary"], "probes": dict(Counter(r["probe"]["state"] for r in sites))},
-            "scope": "metadata_sample_only", "stale_hours": stale_hours}
+            "scope": "listing_page1_only", "stale_hours": stale_hours}
 
 
 def worker_rows(conn) -> list[dict]:

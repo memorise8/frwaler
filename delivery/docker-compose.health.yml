@@ -6,7 +6,9 @@
 #
 # Plans: the collect runner's one-site plans (registry/plans/<site_id>.json),
 # mounted read-only. To leave sites out, mount a CSV (site_id,reason) and add
-# "--exclude-file", "/plans-exclude.csv" to the command.
+# "--exclude-file", "/plans-exclude.csv" to the command. Collector-held hosts:
+# mount a host list read-only and add "--extra-holds-file", "/extra-holds.txt".
+# Refused hosts are kept in /data/health/holds.json until an operator removes them.
 #
 # The /health page reads these results: be must mount the same health-reports
 # volume read-only with CRAWLER_HEALTH_REPORT_DIR=/data/health (docker-compose.yml
