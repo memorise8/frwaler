@@ -6,7 +6,6 @@ timeout on the entire process group, including curl/browser descendants.
 """
 from __future__ import annotations
 
-import argparse
 import contextlib
 import hashlib
 import io
@@ -401,17 +400,11 @@ def run_probe(site: dict, *, timeout: float = 60, limit: int = 3, delay: float =
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("site")
-    parser.add_argument("output", type=Path)
-    parser.add_argument("progress", type=Path)
-    parser.add_argument("limit", type=int)
-    parser.add_argument("delay", type=float)
-    args = parser.parse_args()
-    from crawler.sites import CRAWLERS
-    data = sample_metadata(CRAWLERS[args.site], limit=args.limit, delay=args.delay, progress=args.progress)
-    atomic_json(args.output, data)
+    # The legacy crawler child (curl_cffi/browser fetch paths) no longer runs against live sites.
+    from .runner import LIVE_PROBE_MOVED
+    sys.stderr.write(LIVE_PROBE_MOVED)
+    return 2
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

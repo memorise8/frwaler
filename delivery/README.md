@@ -2,20 +2,24 @@
 
 ## 전수 검증 실행 범위와 재개
 
-`delivery.health.runner --all`은 납품 목록을, `--all-registered`는 추가 등록을 포함한
-전체 수집기를 검사합니다. `--site SITE`도 추가 등록 사이트를 지정할 수 있습니다.
-화면의 기본 납품 목록은 유지합니다. 등록 목록·코드 로딩 조사와 실제 사이트 검사는 별도입니다.
+실제 사이트 검사는 `delivery.health.plan_probe`가 맡습니다. 수집기 계획
+(`registry/plans/<site_id>.json`)의 첫 목록 요청 하나만 보내고, 수집기와 같은 파서로
+목록 1페이지의 제목·링크 수를 셉니다. 모든 요청은 `crawler.enumeration.http.Fetcher`를
+거칩니다(robots.txt 먼저 확인, LibertreeCollector User-Agent, 호스트별 1.5초 이상 간격·동시
+요청 없음, 429·401/403/451·챌린지·로그인 화면은 재시도 없이 그 사이트 중단). 상세 페이지·PDF·
+2페이지는 요청하지 않습니다. 요청마다 `requests.jsonl`에 시각·호스트·상태·소요 시간이 남고
+URL·본문·쿠키는 남기지 않습니다. `delivery.health.runner --all/--all-registered/--site`와
+`listing_probe`·`source_observer`·`probe` CLI는 실제 요청을 보내지 않고 종료합니다.
 
 ```bash
-python -m delivery.health.runner --all-registered --timeout 60 --limit 3 --delay 1 --workers 4 \
-  --report-dir /path/to/survey --profile-id FROZEN_ENVIRONMENT_ID --resume
+python -m delivery.health.plan_probe --plans-dir /srv/collect-runner/registry/plans \
+  --report-dir /path/to/health --gate-dir /path/to/health/.request-gates \
+  [--site SITE ...] [--exclude-file exclude.csv] [--workers 2] [--dry-run]
 ```
 
-검사 소스·컨테이너 이미지·브라우저·키 설정을 고정한 뒤 고유한 `--profile-id`를 부여합니다.
-환경이나 키를 바꾸면 새 식별자와 별도 결과 폴더를 사용합니다. `--resume`은 같은 코드 해시와
-실행 조건에서 기록된 성공·실패 모두를 유지합니다. 따라서 시간 초과나 접근 차단을 자동으로
-재시도해 최초 실패를 덮어쓰지 않습니다. 원인을 조사한 후 별도 회차에서 대상만 재검사합니다.
-`scan.json`에는 전체 대상·완료·재사용 수와 상태별 집계를 계속 기록합니다.
+`--exclude-file`(site_id,reason) 사이트는 요청하지 않고 결과 파일도 만들지 않아 「미검사」로
+남으며, `scan.json`에 사유별로 집계됩니다. `--dry-run`은 첫 요청의 호스트·경로·인자 이름만
+출력합니다. `--interval-hours 48`은 48시간마다 재검사합니다(0은 1회).
 
 이 1차 검사의 범위는 소량 메타데이터 접속·파싱입니다. 실제 DB 저장, 신규 건수 반복,
 중단·재개, PDF/TXT 처리, 원본 총량·전체 완전성은 별도 인수 항목으로 남습니다.
@@ -381,12 +385,13 @@ docker compose -f delivery/docker-compose.yml -f delivery/docker-compose.health.
   --profile health run --rm --build health \
   python -m delivery.health.runner --audit
 
-# 특정 사이트만 실제 접속·파싱 검사 (최대 3개 표본, 60초 제한)
+# 특정 사이트만 목록 1페이지 검사
 docker compose -f delivery/docker-compose.yml -f delivery/docker-compose.health.yml \
   --profile health run --rm health \
-  python -m delivery.health.runner --site doaj-org-search --timeout 60 --limit 3
+  python -m delivery.health.plan_probe --plans-dir /plans --report-dir /data/health \
+  --gate-dir /data/health/.request-gates --site doaj-org-search
 
-# 전체 사이트 검사 후 24시간 쉬고 반복: 2개 병렬, 사이트당 최대 60초
+# 전체 계획 사이트 검사 후 48시간 쉬고 반복: 2개 병렬
 docker compose -f delivery/docker-compose.yml -f delivery/docker-compose.health.yml \
   --profile health up -d --build health
 
@@ -395,10 +400,9 @@ docker compose -f delivery/docker-compose.yml -f delivery/docker-compose.health.
   --profile health stop health
 ```
 
-`--all`은 모든 사이트에 실제 요청을 보냅니다. 주기는 `--interval`, 동시 실행은
-`--workers`(1~4), 요청 간격은 `--delay`로 조절합니다. 한 번 실행한 CLI의 종료
-코드 0은 선택한 사이트 모두 표본 정상, 1은 확인 필요 항목 있음, 2는 잘못된
-인자 또는 다른 검사 실행 중입니다. 주기 서비스는 점검 실패가 있어도 다음 주기에 재검사합니다.
+계획이 있는 모든 사이트에 첫 목록 요청을 보냅니다. 동시 실행은 `--workers`(1~4)로 정하며
+같은 호스트 요청은 병렬 수와 관계없이 하나씩 1.5초 이상 간격으로 나갑니다. 1회 실행의 종료
+코드 0은 검사 완료(사이트별 상태는 결과 파일), 2는 잘못된 인자 또는 다른 검사 실행 중입니다.
 동일 결과 볼륨에서는 파일 잠금으로 중복 검사를 막으므로, 수동 검사 전 주기 서비스를 중지하세요.
 
 검사 컨테이너에는 운영 DB 연결정보·문서 볼륨을 전달하지 않고 별도 네트워크를

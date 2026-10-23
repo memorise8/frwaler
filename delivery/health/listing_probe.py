@@ -127,6 +127,9 @@ def main():
     parser.add_argument('--inventory', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     args = parser.parse_args()
+    # curl-based fetch_once does not follow the request rules: no live runs from this CLI.
+    from .runner import LIVE_PROBE_MOVED
+    parser.exit(2, LIVE_PROBE_MOVED)
     args.out.mkdir(mode=0o700, parents=True, exist_ok=False)
     root = Path(__file__).resolve().parents[2]
     sites = [s for s in json.loads(args.inventory.read_text())['sites'] if s.get('config_source')]

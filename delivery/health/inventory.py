@@ -52,6 +52,7 @@ def inventory(include_registry: bool = False) -> dict:
                     "crawler/document_identity.py", "crawler/db_libertree.py", "crawler/db_pg.py",
                     "delivery/health/probe.py", "delivery/health/diagnostics.py",
                     "delivery/health/request_gate.py", "delivery/health/inventory.py",
+                    "delivery/health/plan_probe.py",
                 ]
                 if site_id in HAL_CHECKPOINT_RESUME:
                     dependencies.append("crawler/hal_checkpoint.py")

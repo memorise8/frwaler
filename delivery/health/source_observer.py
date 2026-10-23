@@ -306,6 +306,9 @@ def main():
     parser.add_argument('--timeout', type=int, default=20)
     parser.add_argument('--site', action='append')
     args = parser.parse_args()
+    # curl-based fetch_once does not follow the request rules: no live runs from this CLI.
+    from .runner import LIVE_PROBE_MOVED
+    parser.exit(2, LIVE_PROBE_MOVED)
     if not (1 <= args.workers <= 4 and 1 <= args.timeout <= 60):
         parser.error('workers 1..4, timeout 1..60')
     args.out.mkdir(mode=0o700, parents=True, exist_ok=False)

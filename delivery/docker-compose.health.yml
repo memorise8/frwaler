@@ -1,12 +1,25 @@
-# Optional metadata probes. This service has no production DB credentials or
-# blob mount. Its root filesystem is read-only; crawler scratch files expire.
+# Optional listing page 1 probe (delivery.health.plan_probe): every request goes
+# through the collectors' governed Fetcher (robots.txt, LibertreeCollector UA,
+# >= 1.5 s per host, no retry on 429/refusals). Rechecks every 48 hours.
+# This service has no production DB credentials or blob mount. Its root
+# filesystem is read-only.
+#
+# Plans: the collect runner's one-site plans (registry/plans/<site_id>.json),
+# mounted read-only. To leave sites out, mount a CSV (site_id,reason) and add
+# "--exclude-file", "/plans-exclude.csv" to the command.
+#
+# The /health page reads these results: be must mount the same health-reports
+# volume read-only with CRAWLER_HEALTH_REPORT_DIR=/data/health (docker-compose.yml
+# already does: health-reports:/data/health:ro).
 services:
   health:
     profiles: ["health"]
     build:
       context: ..
       dockerfile: delivery/Dockerfile.worker
-    command: ["python", "-m", "delivery.health.runner", "--all", "--interval", "86400"]
+    command: ["python", "-m", "delivery.health.plan_probe", "--plans-dir", "/plans",
+              "--report-dir", "/data/health", "--gate-dir", "/data/health/.request-gates",
+              "--workers", "2", "--interval-hours", "48"]
     environment:
       CRAWLER_HEALTH_REPORT_DIR: /data/health
       CANCER_FR_CATALOGUE_DES_PUBLIC_KEY: ${CANCER_FR_CATALOGUE_DES_PUBLIC_KEY:-}
@@ -22,6 +35,7 @@ services:
       SCIENCEON_MAC_ADDRESS: ${SCIENCEON_MAC_ADDRESS:-}
     volumes:
       - health-reports:/data/health
+      - ${COLLECT_RUNNER_HOME:-/srv/collect-runner}/registry/plans:/plans:ro
     networks: [health-egress]
     read_only: true
     tmpfs:
