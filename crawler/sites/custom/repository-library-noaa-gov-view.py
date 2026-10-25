@@ -337,3 +337,29 @@ class NOAARepositoryViewCrawler(BaseCrawler):
             current_id -= 1
 
         return saved
+
+    # Pure enumeration contract (S-open 10-25) for the browse/recent listing phase;
+    # crawl() (including its sequential-ID phase) and transport remain unchanged.
+
+    def _enumeration_items(self, html):
+        """List rows of one browse/recent page (same ID parsing as crawl())."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str) or self._is_not_found(html):
+            raise PermanentFailure("listing_parse_error:not_found_or_denied")
+        return [{"url": f"{self._DETAIL_BASE}{nid}", "noaa_id": nid}
+                for nid in self._parse_list_ids(html)]
+
+    def _enumeration_paper(self, html, item):
+        """Paper from the detail page with crawl()'s rules (_process_item):
+        not-found page and abstract < 50 chars are skips, a page without a title fails."""
+        from crawler.enumeration.http import PermanentFailure
+        if 'Access Denied' in (html or '')[:600]:
+            raise PermanentFailure("detail_access_denied")
+        if self._is_not_found(html):
+            return None
+        paper = self._parse_detail(html, item["noaa_id"])
+        if not paper:
+            raise ValueError("detail_without_title")
+        if len(paper.get('abstract') or '') < 50:
+            return None
+        return paper
