@@ -184,6 +184,23 @@ class ConsultEnvironmentGovtNzClimateCrawler(BaseCrawler):
         return paper
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points (no I/O); crawl() stays unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """Respondent rows of one published-response list page (same validation as crawl())."""
+        ids, _next_url = self._parse_source_list(html, url)
+        return [{"uuId": uid,
+                 "url": (self.base_url + self._CONSULTATION_PATH
+                         + '/consultation/view_respondent?uuId=' + uid)} for uid in ids]
+
+    def _enumeration_detail(self, html, item):
+        """crawl()'s respondent page -> paper. None where crawl() stops for review."""
+        if not html:
+            return None
+        return self._parse_respondent(html, item["uuId"], item["url"])
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
