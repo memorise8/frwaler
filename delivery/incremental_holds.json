@@ -180,7 +180,7 @@
   "agri-ee-ministeerium-uudised": {
     "classification": "full_rescan_required",
     "reason": "embedded_table_dates_nonmonotonic_and_published_history_routes_uncollected",
-    "source_sha256": "b38b014032b99a9b519f6f5d8f67e07741d067e32d795134c94c059da5c9a0df",
+    "source_sha256": "4ac1d5c3714fd857c436cc8bed405e6c23000f5f4f0a8080f89ab3c1d4db32e0",
     "dependency_source_sha256": {
       "delivery/health/access_challenge.py": "cfab2a229bf482e0a0e0cc8f80cc57445db62c768d525e9d8c762c835bf2f28b"
     },
