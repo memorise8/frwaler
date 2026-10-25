@@ -290,6 +290,77 @@ class DataGovUKSearchCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points; crawl() stays unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html, url):
+        """HTML search rows (crawl()'s parser) plus the package_show URL the detail step needs."""
+        items, _has_next, _next_url = self._parse_html_list(html or "", url)
+        rows = []
+        for item in items:
+            if not item.get("url"):
+                continue
+            package_id = item.get("external_id") or item.get("slug")
+            row = dict(item)
+            row["detail_api_url"] = (f"{_PACKAGE_SHOW_URL}?{urlencode({'id': package_id})}"
+                                     if package_id else None)
+            rows.append(row)
+        return rows
+
+    def _enumeration_detail(self, payload, item):
+        """crawl()'s package_show JSON -> paper (None = skipped). May still call
+        _content_disposition_filename (HEAD) when no filename candidate exists, as crawl() does."""
+        item = {k: v for k, v in item.items() if k != "detail_api_url"}
+        if not isinstance(payload, dict) or not payload.get("success"):
+            return None
+        detail = payload.get("result")
+        if not isinstance(detail, dict) or not detail:
+            return None
+
+        record = self._build_record(item, detail)
+        abstract = self._clean_text(record.get("abstract") or "")
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+
+        metadata = dict(record.get("metadata") or {})
+        metadata.setdefault("posted_date", record.get("posted_date_raw"))
+        metadata.setdefault("originalFilename", record.get("original_filename"))
+        metadata.setdefault("journal_raw", record.get("journal_raw"))
+        metadata.setdefault("series", record.get("series"))
+        metadata.setdefault("volume", record.get("volume"))
+        metadata.setdefault("issue", record.get("issue"))
+        metadata.setdefault("package_id", record.get("external_id"))
+        metadata.setdefault("package_name", record.get("slug"))
+        metadata.setdefault("post_number", record.get("post_number"))
+        metadata.setdefault("list_endpoint", _START_URL)
+        metadata.setdefault("list_api_endpoint", _PACKAGE_SEARCH_URL)
+        metadata.setdefault("detail_api_endpoint", _PACKAGE_SHOW_URL)
+        metadata.setdefault("format_filter", "PDF")
+
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": record.get("external_id"),
+            "post_number": record.get("post_number"),
+            "title": record.get("title"),
+            "abstract": abstract,
+            "published_date": record.get("published_date"),
+            "listed_date": record.get("listed_date"),
+            "posted_date": record.get("listed_date"),
+            "authors": record.get("authors") or "",
+            "publisher": record.get("publisher") or "",
+            "department": record.get("department") or "",
+            "journal": record.get("journal") or "",
+            "url": record.get("url"),
+            "pdf_url": record.get("pdf_url"),
+            "keywords": record.get("keywords") or "",
+            "category": record.get("category") or "",
+            "doi": record.get("doi") or "",
+            "original_filename": record.get("original_filename"),
+            "metadata": json.dumps(metadata, ensure_ascii=False, sort_keys=True),
+        }
+
+    # ------------------------------------------------------------------
     # Network helpers
     # ------------------------------------------------------------------
 
