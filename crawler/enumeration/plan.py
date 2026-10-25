@@ -77,6 +77,11 @@ class SitePlan:
         return self.raw.get(name, DEFAULTS.get(name))
 
     @property
+    def limits(self):
+        """Page caps a page_cap stop depends on (Store.start_site reopens such a stop when they change)."""
+        return {"max_pages": self.raw.get("max_pages"), "legacy_page_cap": (self.raw.get("legacy") or {}).get("page_cap")}
+
+    @property
     def fingerprint(self):
         contract = {k: self.raw.get(k) for k in _CONTRACT_KEYS}
         adapter = self.raw.get("adapter") or {}

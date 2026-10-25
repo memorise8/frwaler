@@ -548,6 +548,11 @@ class RequestsTransport:
             raise TransportError(type(exc).__name__) from exc
 
 
+def _same_host_key(host):
+    """www.example.org and example.org are one host for the cross-host redirect rule."""
+    return host[4:] if host.startswith("www.") else host
+
+
 class Fetcher:
     def __init__(self, site_id, transport, gate_dir, *, interval=1.5, max_requests=None,
                  max_runtime_s=None, retries=3, backoff_s=2.0, max_retry_wait_s=120,
@@ -584,6 +589,7 @@ class Fetcher:
         self._consecutive_429 = 0
         self.holds = holds
         self.max_redirects = int(max_redirects)
+        self.foreign_redirect_item = False  # see get(); set by the runner around one detail item
         # Destination check before every request/hop; the production transport also
         # pins the connection to the checked address.
         self.resolver = resolver or getattr(transport, "resolve", None)
@@ -920,25 +926,35 @@ class Fetcher:
             self.holds.hold_host(host_of(url), reason, url, self.site_id)
         return self.blocked
 
-    def get(self, url, *, accept_statuses=()):
+    def get(self, url, *, accept_statuses=(), foreign_redirect_item=None):
         """Fetch ``url`` through the gate, following redirects hop by hop.
         Returns a 2xx (or accepted) Response.
+
+        ``foreign_redirect_item`` (default: the ``foreign_redirect_item`` attribute, which the runner
+        turns on only while it materializes one detail item): when a redirect leaves the requested host and the
+        new host cannot be used (robots.txt unreachable, held, refusing, rate limiting), only this
+        URL fails (PermanentFailure ``cross_host_redirect:<reason>``) instead of the whole site
+        stopping. The new host's own hold is still recorded; nothing is retried or worked around.
 
         Raises PermanentFailure, TransientFailure, AccessBlocked, RateLimited, RobotsUnavailable or
         BudgetExhausted.
         """
         accept_statuses = tuple(s for s in accept_statuses if s not in REFUSAL_STATUSES)
+        if foreign_redirect_item is None:
+            foreign_redirect_item = self.foreign_redirect_item
+        home = _same_host_key(host_of(url))
         current = url
         for _hop in range(self.max_redirects + 1):
-            normalised = governed_url(current)
-            if normalised != current:
-                self._check_holds(current)  # a hold may name the host in its Unicode form
-            current = normalised
-            self._check_holds(current)
-            if not self._robots_allows(current):
-                # A path-level rule: never a host hold, and never requested.
-                raise RobotsDisallowed("robots_disallowed", current)
-            resp = self._with_retries(current, accept_statuses=accept_statuses)
+            foreign = foreign_redirect_item and _hop > 0 and _same_host_key(host_of(current)) != home
+            blocked_before = self.blocked
+            try:
+                resp = self._get_hop(current, accept_statuses)
+            except (RobotsUnavailable, RateLimited, AccessBlocked) as exc:
+                if not foreign or isinstance(exc, RobotsDisallowed):
+                    raise
+                self.blocked = blocked_before  # the other host's refusal is not this site's
+                raise PermanentFailure(f"cross_host_redirect:{exc.reason}", current, exc.status) from None
+            current = resp.url_requested
             if 300 <= resp.status < 400:
                 nxt = urljoin(current, location_of(resp))
                 if _LOGIN_PATH.search(urlsplit(nxt).path or ""):
@@ -949,6 +965,20 @@ class Fetcher:
             resp._encoding = resp._encoding or self.encoding
             return resp
         raise PermanentFailure("too_many_redirects", url)
+
+    def _get_hop(self, current, accept_statuses):
+        """One hop of ``get``: holds, robots, then the gated request (redirects not followed)."""
+        normalised = governed_url(current)
+        if normalised != current:
+            self._check_holds(current)  # a hold may name the host in its Unicode form
+        current = normalised
+        self._check_holds(current)
+        if not self._robots_allows(current):
+            # A path-level rule: never a host hold, and never requested.
+            raise RobotsDisallowed("robots_disallowed", current)
+        resp = self._with_retries(current, accept_statuses=accept_statuses)
+        resp.url_requested = current
+        return resp
 
     def post(self, url, body, *, body_type="form", accept_statuses=(), content_type=None, headers=None):
         """POST a listing query (plans may use it only for idempotent search APIs) through the

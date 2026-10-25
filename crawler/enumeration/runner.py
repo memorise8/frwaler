@@ -166,7 +166,12 @@ class SiteRunner:
                                **({"list_position": position} if position else {})})
         item.segment = self.segment_info(segment)  # ext:multi_listing ("segment" argument)
         try:
-            paper = self.adapter.materialize(item, self.fetcher)
+            # A detail URL that redirects to another, unusable host fails alone (cross_host_redirect).
+            self.fetcher.foreign_redirect_item = True
+            try:
+                paper = self.adapter.materialize(item, self.fetcher)
+            finally:
+                self.fetcher.foreign_redirect_item = False
         except RobotsDisallowed as exc:
             # One detail URL the site's robots.txt excludes: skip that item, keep the site going.
             # Consecutive exclusions mean robots.txt covers the detail pages: stop the site.
@@ -654,7 +659,7 @@ class SiteRunner:
                                 "retry_only" if retry_only else "already_complete_retry_only")
         doc_conn = self.adapter.conn
         duplicates_before = duplicate_rows(doc_conn, site)
-        state = st.start_site(site, plan.fingerprint, plan.strategy)
+        state = st.start_site(site, plan.fingerprint, plan.strategy, plan.limits)
         state.pop("cooldown_until", None)
         state.pop("adapter_contract_stop_items", None)
         parser = ListingParser(plan.listing.get("parser"), total_cfg=plan.listing.get("total"), adapter=self.adapter)

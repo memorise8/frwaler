@@ -97,13 +97,22 @@ class Store:
             row["state"] = json.loads(row["state"] or "{}")
         return row
 
-    def start_site(self, site_id, plan_fp, strategy):
-        """Begin a run. A changed plan starts a new segment generation; it never blocks."""
+    def start_site(self, site_id, plan_fp, strategy, limits=None):
+        """Begin a run. A changed plan starts a new segment generation; it never blocks.
+
+        ``limits`` (the plan's page caps, kept out of plan_fp so a cap change does not restart every
+        site): a run that stopped at the page cap resumes from its capped cursor only under the same
+        caps; with other (or unrecorded) caps the listing is read again from the start, so a raised
+        cap reaches the pages the old cap cut off. Saved items are skipped through the item ledger."""
         current = self.site(site_id)
         if current and current["plan_fp"] == plan_fp:
             state = current["state"]
-            if current["status"] in ("complete", "complete_with_mismatch", "complete_unverified",
-                                     "complete_with_review"):
+            reopen = (limits is not None and current["stop_reason"] == "page_cap_reached"
+                      and state.get("limits") != limits)
+            if reopen:
+                self.event(site_id, "page_cap_reopened", {"from": state.get("limits"), "to": limits})
+            if reopen or current["status"] in ("complete", "complete_with_mismatch", "complete_unverified",
+                                               "complete_with_review"):
                 # A completed enumeration re-runs from scratch as a fresh pass;
                 # saved items are skipped through the item ledger. Segments found on a hub page
                 # (ext:multi_listing) are remembered, so one missing later is still read.
@@ -116,6 +125,8 @@ class Store:
             state = {"discovered_keys": kept} if kept else {}
             if current:
                 self.event(site_id, "plan_changed", {"from": current["plan_fp"], "to": plan_fp})
+        if limits is not None:
+            state = dict(state, limits=limits)
         self._exec("""INSERT INTO enum_site(site_id,plan_fp,strategy,status,stop_reason,state,started_at,updated_at,completed_at)
           VALUES(?,?,?,?,NULL,?,?,?,NULL) ON CONFLICT(site_id) DO UPDATE SET plan_fp=excluded.plan_fp,
           strategy=excluded.strategy,status='running',stop_reason=NULL,state=excluded.state,

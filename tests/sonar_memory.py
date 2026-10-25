@@ -13,7 +13,7 @@ class MemoryStore:
     def site(self, site):
         return copy.deepcopy(self.data['sites'].get(site))
 
-    def start_site(self, site, fp, strategy):
+    def start_site(self, site, fp, strategy, limits=None):
         old = self.site(site)
         state = old['state'] if old and old['plan_fp'] == fp else {}
         self.data['sites'][site] = dict(plan_fp=fp, strategy=strategy, state=state, status='running')
