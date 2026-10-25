@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "sites": {
+    "kmcc-go-kr-userdo": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.kmcc.go.kr",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": ["html"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["html", "item"]
+      },
+      "listing": {
+        "url": "https://www.kmcc.go.kr/user.do",
+        "params": {"boardId": "1113", "page": "A05030000", "dc": "K05030000", "nop": "30"},
+        "page_param": "cp",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "board_seq",
+          "url_field": "detail_url",
+          "date_field": "listed_date",
+          "title_field": "title",
+          "listing_marker": "table.table_style01"
+        }
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}
