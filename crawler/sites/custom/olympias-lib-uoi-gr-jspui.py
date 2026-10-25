@@ -420,8 +420,12 @@ class OlympiasLibUoiGrJspuiCrawler(BaseCrawler):
             raise PermanentFailure("listing_parse_error:missing_main_marker")
         rows = [{"url": _DETAIL_TPL.format(handle=h), "handle": h} for h in _extract_handles(html)]
 
-        if not rows and soup.find("main").get_text(" ", strip=True):
-            raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing")
+        if not rows:
+            text = soup.find("main").get_text(" ", strip=True)
+            # Past the end DSpace answers "Results 3021-3003 of 3003": first > total.
+            past_end = re.search(r"Results\s+(\d+)\s*-\s*\d+\s+of\s+(\d+)", text)
+            if text and not (past_end and int(past_end.group(1)) > int(past_end.group(2))):
+                raise PermanentFailure("listing_parse_error:unconfirmed_empty_listing")
         return rows
 
     def _enumeration_detail(self, html, item):
