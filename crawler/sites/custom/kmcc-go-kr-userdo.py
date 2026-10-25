@@ -425,3 +425,93 @@ class KmccUserDoCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (S-open-g5): pure parsing, crawl() unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """List page -> rows from _parse_list(); a page without the board table is an error."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html)
+        if soup is None or soup.find("table", class_=re.compile(r"\btable_style01\b")) is None:
+            raise PermanentFailure("listing_parse_error:missing_board_table")
+        return self._parse_list(html)
+
+    def _enumeration_paper(self, html, item):
+        """Detail page + list row -> paper (None = crawl()'s no-title / short-abstract skips)."""
+        detail_url = item["detail_url"]
+        detail = self._parse_detail(html)
+
+        title = detail.get("title") or item["title"]
+        title = re.sub(r"\s+", " ", title).strip()
+        if not title:
+            return None
+
+        content = (detail.get("content") or "").strip()
+        parts = [title]
+        if content:
+            parts.append(content)
+        dept = detail.get("department") or item.get("department", "")
+        if dept:
+            parts.append(f"담당부서: {dept}")
+        abstract = "\n\n".join(parts)
+        if len(abstract) < _SKIP_ABSTRACT_UNDER:
+            return None
+
+        listed_date = item.get("listed_date", "")
+        published_date = detail.get("registered_date") or listed_date
+
+        all_files = detail.get("files") or item.get("file_links", [])
+        pdf_url = None
+        original_filename = None
+        for f in all_files:
+            fname = f.get("name", "")
+            if fname.lower().endswith(".pdf"):
+                pdf_url = f["url"]
+                original_filename = fname
+                break
+        if original_filename is None and all_files:
+            original_filename = all_files[0].get("name")
+            if pdf_url is None:
+                pdf_url = all_files[0].get("url")
+
+        author = detail.get("author", "")
+        license_type = detail.get("license_type") or item.get("license_type", "")
+        contact = detail.get("contact", "")
+
+        metadata = {
+            "posted_date": listed_date,
+            "originalFilename": original_filename,
+            "boardSeq": item["board_seq"],
+            "post_number_listed": item["post_number"],
+            "license_type": license_type,
+            "contact": contact,
+            "attachments": [
+                {"name": f.get("name", ""), "url": f.get("url", "")}
+                for f in all_files
+            ],
+        }
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": item["board_seq"],
+            "post_number": item["post_number"] or item["board_seq"],
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": listed_date,
+            "authors": author,
+            "publisher": "방송미디어통신위원회",
+            "department": dept,
+            "journal": None,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "keywords": "",
+            "category": "보도자료",
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
