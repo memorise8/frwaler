@@ -58,8 +58,11 @@ SHARED_META_URL = {"garda-ie-en", "kefm-dk-aftaler", "csic-es-es", "um-dk-om-os"
 # em-lyon-com-en: 폴더 안 같은 meta_url 에 post_number 2개인 2행 제외한 채 845건(collect-sites 10-20, work/ND/decisions.csv).
 # daejeon-go-kr-drh: no_overlap — 전체 수집 s144(44,209)와 10-18 시험 t0357(98)이 겹치는 URL 0, 시험 98건은 같은 post_number 의
 #   새 실행으로 모두 대체(superseded_by_newer_run 98), 충돌 0(O1 근거, 메인 지시·사용자 승인 10-21 "받은 것만 넣고 사유 기록").
+# rosap-ntl-bts-gov-cbrowse: access_refused 로 중간 멈춤(20261025-s331, 198쪽 중 122쪽부터 남음) — 받은 1,507건만(오래된 쪽),
+#   v2 기존 562건과 겹침·충돌 0, 남은 약 2,400건은 접근 거절로 미수집 기록(S 요청, 사용자 이 창 승인 10-25 "받은 것만 넣고 사유 기록").
 REVIEW_ACCEPTED = {"em-lyon-com-en": "f837027769dae5908f1bb9a3ff521f7682848d31d22bc0ac154da9a57bb7e6b9",
-                   "daejeon-go-kr-drh": "ffebd24ebeed6415939ba3697af032ef3db6c48cbffbddbd5802e3f44882f8a7"}
+                   "daejeon-go-kr-drh": "ffebd24ebeed6415939ba3697af032ef3db6c48cbffbddbd5802e3f44882f8a7",
+                   "rosap-ntl-bts-gov-cbrowse": "bedfc2a4d33cff995a35d9fa1b1ae8b046a75ba989f33cd0b4352a0250dd323c"}
 # 구역 세션 판정(dev-flow site-status/*.csv)이 이러면 자동 반영하지 않는다
 HOLD_STATES = {"needs_dev", "blocked_access", "moved", "no_crawler", "skip", "plan_written"}
 # 제품 sites 에 없는 enum 사이트 ID 는 crawler/sites/configs/<id>.json 의 별도 설정형 수집기다(납품 806곳 밖).
