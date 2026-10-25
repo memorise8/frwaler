@@ -48,5 +48,9 @@ export const NAV_ITEMS: readonly NavItem[] = NAV_GROUPS.flatMap((group) => group
 // password-protected "/".
 export const HOME_HREF = "/site-collect";
 
+// 사이트 수집 opened on one site's detail (the console reads ?site=).
+export const siteCollectHref = (siteId?: string): string =>
+  siteId ? `/site-collect?site=${encodeURIComponent(siteId)}` : "/site-collect";
+
 export const isActiveNav = (pathname: string, matches: readonly string[]): boolean =>
   matches.some((prefix) => prefix === "/" ? pathname === "/" : pathname === prefix || pathname.startsWith(`${prefix}/`));

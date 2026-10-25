@@ -6,7 +6,7 @@ import { getFreshnessStats, getVerificationStats } from "@/lib/database-stats";
 import { contradictsAudit, indexVerification, resolveVerificationState, VERIFICATION_LABEL } from "@/lib/crawler-verification";
 import { hasActiveCatalogueFilter } from "@/lib/catalogue-filters";
 import { matchesFreshnessFilter } from "@/lib/freshness-filter";
-import BulkRunPanel from "@/components/bulk-run-panel";
+import CollectHereLink from "@/components/collect-here-link";
 
 export const dynamic = "force-dynamic";
 
@@ -156,14 +156,7 @@ export default async function CrawlerFleet({ searchParams }: Readonly<{ searchPa
           {!visible.length && <div className="empty">조건에 맞는 수집기가 없습니다.</div>}
         </div> : <div className="catalogue-prompt"><span aria-hidden="true">↗</span><div><strong>검색어를 입력하거나 조건을 선택해 주세요.</strong><p>사이트 이름으로 검색하거나 위의 상태·실패 유형·국가·자료 유형 중 하나를 선택하면 해당 수집기만 목록에 표시됩니다.</p></div></div>}
 
-        {/* Acts on every row the current filter selects, not just this page --
-            which is what makes "독일 전체" or "논문 전체" a single action. */}
-        {hasCatalogueSelection && selectedRows.length > 0 && (
-          <BulkRunPanel
-            label={[country, docType, status === "healthy" ? "정상" : status === "unhealthy" ? "실패" : "", category].filter(Boolean).join(" · ") || (query ? `"${query}" 검색` : showAll ? "등록된 전체 수집기" : "선택한 조건")}
-            siteIds={selectedRows.map((row) => row.siteId)}
-          />
-        )}
+        {hasCatalogueSelection && selectedRows.length > 0 && <CollectHereLink />}
 
         {hasCatalogueSelection && <nav className="pagination" aria-label="페이지 이동">
           {page > 1 ? <Link href={pageHref(filters, page - 1)}>← 이전</Link> : <span />}

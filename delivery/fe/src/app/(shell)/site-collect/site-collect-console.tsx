@@ -53,22 +53,22 @@ const MixBar = ({ list }: { list: readonly ConsoleSite[] }) => {
   return <div className="mix">{MIX_ORDER.map((k) => c[k] ? <i key={k} style={{ width: `${(c[k] / list.length) * 100}%`, background: MIXCOL[k] }} /> : null)}</div>;
 };
 
-export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: ConsoleData; fetchedAt: number }>) {
+export default function CollectConsole({ data, fetchedAt, initialSite = null }: Readonly<{ data: ConsoleData; fetchedAt: number; initialSite?: string | null }>) {
   const router = useRouter();
   // 이 화면에서 이어받기를 요청했다가 대량 승인 필요로 거절된 사이트: BE 에 반영되기 전에도 승인 대기에 보인다.
   const [held, setHeld] = useState<readonly string[]>([]);
   const all = useMemo(() => held.length ? data.sites.map((s) => !s.approval && held.includes(s.id) ? { ...s, approval: true } : s) : data.sites, [data.sites, held]);
   const [view, setView] = useState<View>("type");
-  const [onlyAttn, setOnlyAttn] = useState(true);
+  const [onlyAttn, setOnlyAttn] = useState(!initialSite);
   const [selType, setSelType] = useState("");
   const [selCountry, setSelCountry] = useState("");
   const [selCls, setSelCls] = useState("");
   const [lane, setLane] = useState("");
   const [special, setSpecial] = useState<Special>("");
   const [stateFilter, setStateFilter] = useState("");
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initialSite ?? "");
   const [shown, setShown] = useState(PAGE);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(initialSite);
   const [themeIdx, setThemeIdx] = useState(0);
   const [now, setNow] = useState(fetchedAt);
   const [trialLimit, setTrialLimit] = useState(100);
