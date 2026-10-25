@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Libertree 사용 안내</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one reading column with a sticky table of contents on wide screens */
+:root{
+  --bg:#f5f6f4; --surface:#ffffff; --fg:#1d2420; --muted:#5d6a63; --line:#dbe1dc;
+  --accent:#2f6b52; --ok:#2f7d55; --warn:#a8741a; --stop:#b23a30; --key:#eef2ef;
+  --sans:"IBM Plex Sans KR",system-ui,-apple-system,"Malgun Gothic",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#131815; --surface:#1b221e; --fg:#e3e9e5; --muted:#9aa8a0; --line:#2c3630; --key:#25302a;
+  --accent:#74c19c; --ok:#6cc296; --warn:#e0b25a; --stop:#f0786c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131815; --surface:#1b221e; --fg:#e3e9e5; --muted:#9aa8a0; --line:#2c3630; --key:#25302a;
+  --accent:#74c19c; --ok:#6cc296; --warn:#e0b25a; --stop:#f0786c; color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.7;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px;word-break:keep-all}
+.wrap{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:200px minmax(0,1fr);gap:40px}
+nav.toc{position:sticky;top:24px;align-self:start;font-size:.9rem}
+nav.toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+nav.toc a{color:var(--muted);text-decoration:none}
+nav.toc a:hover{color:var(--accent)}
+main{min-width:0;display:flex;flex-direction:column;gap:36px}
+h1{font-size:1.7rem;margin:0;text-wrap:balance}
+h2{font-size:1.2rem;margin:0 0 12px;text-wrap:balance;scroll-margin-top:16px}
+h3{font-size:1rem;margin:18px 0 8px}
+p{margin:0 0 8px}
+a{color:var(--accent)}
+.meta{color:var(--muted);font-size:.9rem;margin-top:6px}
+.back{display:inline-block;margin-bottom:14px;font-size:.9rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px 18px}
+.callout{border-left:4px solid var(--warn);background:var(--surface);border-radius:6px;padding:12px 16px}
+.callout.ok{border-left-color:var(--ok)}
+.tbl{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600;font-size:.8rem;white-space:nowrap}
+tr:last-child td{border-bottom:0}
+ol.steps{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px}
+ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
+kbd,.btn{font-family:var(--sans);font-size:.85em;background:var(--key);border:1px solid var(--line);border-radius:5px;padding:1px 7px;white-space:nowrap}
+.flows{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.flows .card h3{margin-top:0}
+.note{color:var(--muted);font-size:.9rem}
+@media (max-width:820px){.wrap{grid-template-columns:1fr;gap:20px} nav.toc{position:static} nav.toc ol{flex-direction:row;flex-wrap:wrap;gap:6px 14px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav class="toc" aria-label="목차">
+  <ol>
+    <li><a href="#start">처음 볼 곳</a></li>
+    <li><a href="#menu">메뉴 한눈에</a></li>
+    <li><a href="#collect">사이트 수집 쓰는 법</a></li>
+    <li><a href="#flows">자주 하는 일</a></li>
+    <li><a href="#blocked">버튼이 막힐 때</a></li>
+    <li><a href="#numbers">숫자 읽는 법</a></li>
+    <li><a href="#screens">다른 화면</a></li>
+    <li><a href="#rules">수집 규칙</a></li>
+    <li><a href="#words">용어</a></li>
+  </ol>
+</nav>
+<main>
+<header>
+  <a class="back" href="/site-collect">← 사이트 수집으로</a>
+  <h1>Libertree 사용 안내</h1>
+  <p class="meta">운영 화면으로 사이트 수집을 시작하고, 진행을 보고, 받은 문서를 찾는 방법 · 2026-10-25 판</p>
+</header>
+
+<section id="start">
+  <h2>처음 볼 곳</h2>
+  <div class="callout ok">
+    <p><b>수집은 「사이트 수집」 화면 하나에서 시작하고 확인합니다.</b> 시험 수집 → 결과 확인 → 전체 수집(이어받기) 순서로 진행하며, 시작하면 안 되는 사이트는 버튼이 꺼지고 이유가 함께 나옵니다.</p>
+  </div>
+  <ul style="margin-top:12px">
+    <li>모든 실행 버튼은 확인 창이 먼저 뜨고, 「확인」을 눌러야 요청이 나갑니다.</li>
+    <li>화면은 15초마다 저절로 새로 고쳐집니다. 바로 보고 싶으면 <span class="btn">새로고침</span>을 누릅니다.</li>
+    <li>시각은 모두 한국 시간입니다.</li>
+  </ul>
+</section>
+
+<section id="menu">
+  <h2>메뉴 한눈에</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>묶음</th><th>메뉴</th><th>이럴 때 엽니다</th></tr></thead>
+    <tbody>
+      <tr><td rowspan="3">수집</td><td><b>사이트 수집</b></td><td>사이트별 상태 보기, 시험 수집·전체 수집 시작, 취소 <b>(주 화면)</b></td></tr>
+      <tr><td>수집 예약</td><td>끝난 사이트의 새 글을 주기적으로 받도록 예약</td></tr>
+      <tr><td>백필 진행</td><td>사이트별 과거분 수집 진행률</td></tr>
+      <tr><td rowspan="3">상태</td><td>수집기 상태</td><td>수집기 목록과 납품 당시 검증 결과</td></tr>
+      <tr><td>건강 점검</td><td>DB·작업자 상태, 수집기 표본 검사 결과</td></tr>
+      <tr><td>수집 상태</td><td>DB에 들어 있는 전체 문서·PDF 수, 국가·유형 분포</td></tr>
+      <tr><td rowspan="2">결과</td><td>문서 탐색</td><td>받은 문서 찾기와 상세 보기</td></tr>
+      <tr><td>번역 작업</td><td>제목 번역·초록 요약 작업</td></tr>
+      <tr><td>기타</td><td>작업 대시보드 🔒</td><td>별도 암호가 필요한 관리 화면</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="collect">
+  <h2>사이트 수집 쓰는 법</h2>
+  <h3>1. 위쪽: 상태 칩</h3>
+  <p><span class="btn">수집 중</span> <span class="btn">멈춤</span> <span class="btn">검토 필요</span> <span class="btn">완료</span> <span class="btn">접근 제한</span> <span class="btn">새 수집 전</span> <span class="btn">승인 대기</span> <span class="btn">미수집</span> 칩의 숫자는 해당 사이트 수입니다. 누르면 아래 목록이 그 상태만 남고, 한 번 더 누르면 풀립니다. 붉은 「확인 필요」 띠의 <span class="btn">멈춤 N곳</span>·<span class="btn">접근 제한 N곳</span>도 같은 동작입니다.</p>
+  <p>맨 위 줄에는 실행기 상태가 나옵니다(예: 「실행기 정상 · 실행 10 · 대기 0 · 동시 16」). 「실행기 연결 안 됨」이나 「일시 중지」가 보이면 시작 버튼이 모두 꺼집니다.</p>
+  <h3>2. 가운데: 목록</h3>
+  <ul>
+    <li><b>처음에는 「주의 필요만」이 켜져 있어 일부 사이트만 보입니다.</b> 찾는 사이트가 없으면 이 체크를 풀거나 왼쪽 묶음에서 「전체」를 누릅니다.</li>
+    <li>검색칸에 사이트 ID 일부를 넣으면 바로 걸러집니다. 상태·구분·구역 필터를 함께 쓸 수 있습니다.</li>
+    <li>보기 전환으로 유형별·국가별·유형×국가 표를 볼 수 있고, 칸을 누르면 그 사이트들만 남습니다.</li>
+  </ul>
+  <h3>3. 사이트 줄을 누르면: 상세</h3>
+  <p>데스크톱은 오른쪽, 폰은 목록 아래에 상세가 열립니다.</p>
+  <ul>
+    <li><b>커버리지</b>: 받은 수 / 사이트 총건수 / 아직 못 받은 수</li>
+    <li><b>미수집 사유</b>: 못 받은 부분이 있으면 이유</li>
+    <li><b>실행 기록</b>: 시험·전체 수집 기록, 상태(대기·실행 중·완료·취소), 저장 수. 실행 중이면 <span class="btn">취소</span> 버튼</li>
+    <li><b>시작 전 점검</b>: 지금 시작할 수 있는지와, 안 되면 그 이유</li>
+    <li>아래 버튼: <span class="btn">시험 수집</span>(건수 1~1,000, 기본 100) · <span class="btn">수집 시작</span> 또는 <span class="btn">이어받기 시작</span></li>
+  </ul>
+</section>
+
+<section id="flows">
+  <h2>자주 하는 일</h2>
+  <div class="flows">
+    <div class="card">
+      <h3>A. 시험 수집 → 확인 → 전체 수집</h3>
+      <ol class="steps">
+        <li>사이트 수집 검색칸에 사이트 ID를 넣고 줄을 누릅니다.</li>
+        <li>「시작 전 점검」에 막힘(✕)이 없는지 봅니다.</li>
+        <li>건수를 적고(예: 100) <span class="btn">시험 수집</span> → 확인 창 <span class="btn">확인</span>.</li>
+        <li>잠시 뒤 실행 기록에 「완료 · 저장 N」이 뜨면, 문서 링크로 실제 문서를 열어 제목·날짜·초록을 확인합니다.</li>
+        <li>문제없으면 <span class="btn">이어받기 시작</span> → <span class="btn">확인</span>. 「승인 대기」가 나오면 <a href="#blocked">대량 승인</a>을 먼저 받습니다.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>B. 지금 무엇이 돌고 있나</h3>
+      <ol class="steps">
+        <li>사이트 수집 위쪽 <span class="btn">수집 중</span> 칩을 누릅니다.</li>
+        <li>사이트를 누르면 커버리지에서 얼마나 받았는지 봅니다.</li>
+        <li>DB 전체 문서 수는 「수집 상태」 화면의 「전체 문서」·「마지막 수집」에서 봅니다.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>C. 멈춘 수집 다시 / 취소</h3>
+      <ol class="steps">
+        <li><span class="btn">멈춤</span> 칩 → 사이트 선택 → 시작 전 점검의 이유를 읽습니다.</li>
+        <li>일시 오류였으면 <span class="btn">이어받기 시작</span>. 받은 데서부터 이어 받습니다.</li>
+        <li>그만두려면 실행 기록의 <span class="btn">취소</span>. 다음 확인 지점에서 멈춥니다.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>D. 받은 문서 찾기</h3>
+      <ol class="steps">
+        <li>「문서 탐색」에서 사이트를 먼저 고릅니다(고르기 전에는 검색칸이 꺼져 있습니다).</li>
+        <li>검색어 입력 → <span class="btn">검색</span>. 「상세 조건」에서 국가·날짜·PDF 여부를 지정합니다.</li>
+        <li>제목을 누르면 상세(초록·요약·키워드), <span class="btn">원문 사이트 ↗</span>로 원문에 갑니다.</li>
+        <li>PDF가 있는 문서만 보려면 「수집 상태」의 「PDF 확보」 카드를 누릅니다.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>E. 새 글 주기 수집 예약</h3>
+      <ol class="steps">
+        <li>「수집 예약」 맨 위 확인 체크를 켭니다.</li>
+        <li>사이트 ID(자동완성)·주기·방식을 고르고 <span class="btn">예약 저장</span>.</li>
+        <li>끄려면 「사용」 체크를 끄고 <span class="btn">변경 저장</span>, 지우려면 <span class="btn">삭제</span> → <span class="btn">삭제 확인</span>.</li>
+      </ol>
+      <p class="note" style="margin-top:8px">수집 계획이 준비된 사이트만 저장됩니다.</p>
+    </div>
+  </div>
+</section>
+
+<section id="blocked">
+  <h2>버튼이 막힐 때</h2>
+  <p>상세의 「시작 전 점검」에 아래 문구 중 하나가 나옵니다.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>화면 문구</th><th>뜻</th><th>할 일</th></tr></thead>
+    <tbody>
+      <tr><td>실행기 없음 / 연결 안 됨</td><td>수집 실행 프로그램과 연결이 끊김</td><td>잠시 뒤 새로고침. 계속되면 개발 담당에게</td></tr>
+      <tr><td>실행기가 일시 중지돼 있어…</td><td>점검 등으로 새 작업을 받지 않는 중</td><td>중지가 풀린 뒤 다시</td></tr>
+      <tr><td>실행기에 등록된 plan 이 없습니다</td><td>이 사이트용 수집 계획(설정)이 아직 없음</td><td>개발 담당에게 수집기·계획 요청</td></tr>
+      <tr><td>plan 등록됨, 실행 불가 — …</td><td>계획은 있으나 문제가 있어 막아 둠</td><td>뒤에 붙은 이유를 개발 담당에게 전달</td></tr>
+      <tr><td>…실행 중입니다 / 이미 수집 중입니다</td><td>같은 사이트 작업이 이미 돌고 있음</td><td>끝날 때까지 기다리거나 취소 후 다시</td></tr>
+      <tr><td>접근 제한·협의 필요 사이트는 시작할 수 없습니다</td><td>사이트가 차단·robots 거부·로그인 요구</td><td>시작 불가. 사이트 쪽 허가가 있어야 함(우회하지 않음)</td></tr>
+      <tr><td>승인 대기 — 예상 N건…</td><td>1만 건 이상이거나 건수를 모르는 대량 수집</td><td>시험 수집은 됩니다. 전체 수집은 책임자 승인 뒤 개발 담당이 열어 줍니다</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="numbers">
+  <h2>숫자 읽는 법</h2>
+  <p>화면마다 세는 기준이 달라 숫자가 다르게 보일 수 있습니다. 아래를 기준으로 보세요.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>알고 싶은 것</th><th>볼 곳</th><th>참고</th></tr></thead>
+    <tbody>
+      <tr><td>DB 전체 문서·PDF 수</td><td>수집 상태 — 전체 문서, PDF 확보</td><td>DB 실측값. PDF 수는 30분마다 갱신</td></tr>
+      <tr><td>지금 도는 수집</td><td>사이트 수집 — 맨 위 실행기 줄, 「수집 중」 칩</td><td>건강 점검의 「작업 대기/실행」은 다른 작업 대기열이라 0일 수 있습니다</td></tr>
+      <tr><td>사이트 하나의 진행</td><td>사이트 수집 — 상세 커버리지</td><td>사이트 총건수는 사이트가 보여 주는 값이나 계획의 예상값</td></tr>
+      <tr><td>수집기 검증 결과</td><td>수집기 상태</td><td>회색 「납품 당시」 숫자는 08-06 검증 기준(지금 상태 아님)</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note" style="margin-top:8px">국가·유형이 「기타(미정)」인 문서가 많습니다. 이전 납품 자료에 국가·유형 정보가 없던 것이라 분포 막대는 참고만 하세요.</p>
+</section>
+
+<section id="screens">
+  <h2>다른 화면</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>화면</th><th>쓸 수 있는 것</th><th>알아 둘 점</th></tr></thead>
+    <tbody>
+      <tr><td>수집 예약</td><td>예약 추가·켜고 끄기·삭제</td><td>체크를 바꾼 뒤 「변경 저장」을 눌러야 반영</td></tr>
+      <tr><td>백필 진행</td><td>보기만</td><td>사이트별 과거분 진행률</td></tr>
+      <tr><td>수집기 상태</td><td>국가·유형·상태로 수집기 찾기, 「상세 →」</td><td>조건을 고르기 전에는 목록이 비어 있습니다. 이 화면과 수집기 상세의 실행·일괄 실행 기능은 쓰지 말고, <b>수집은 사이트 수집에서 시작하세요</b>(대량 승인 확인이 사이트 수집에만 있습니다)</td></tr>
+      <tr><td>건강 점검</td><td>DB·작업자 상태, 수집기 표본 검사 결과, 사이트 이름 클릭 → 상세</td><td>30초마다 갱신</td></tr>
+      <tr><td>수집 상태</td><td>전체 숫자, 카드 클릭 → 해당 문서 목록</td><td></td></tr>
+      <tr><td>문서 탐색</td><td>사이트별 검색, 상세, 원문 링크</td><td>사이트 전체를 한 번에 검색하지는 못합니다</td></tr>
+      <tr><td>번역 작업</td><td>「대상 미리보기」로 대상 확인 → 「작업 등록」</td><td>외부 번역 비용이 듭니다. 「작업 등록」은 누르면 바로 등록되니 미리보기로 대상 수를 먼저 확인하세요</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="rules">
+  <h2>수집 규칙</h2>
+  <div class="card">
+    <ul>
+      <li>모든 요청은 사이트의 robots.txt 를 먼저 확인하고, 정직한 수집기 이름(LibertreeCollector)으로 보냅니다.</li>
+      <li>같은 사이트에는 1.5초 이상 간격을 두고, 동시에 여러 요청을 보내지 않습니다.</li>
+      <li>사이트가 막으면(403·429·봇 확인·로그인) 즉시 멈추고 기록만 합니다. 우회하지 않습니다.</li>
+      <li>1만 건 이상 대량 수집은 승인 뒤에만 시작합니다.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="words">
+  <h2>용어</h2>
+  <div class="tbl"><table>
+    <tbody>
+      <tr><td><b>시험 수집</b></td><td>적은 건수(최대 1,000)만 받아 수집기가 제대로 도는지 보는 것</td></tr>
+      <tr><td><b>이어받기</b></td><td>전에 받은 데서부터 끝까지 받기. 처음이면 「수집 시작」으로 보임</td></tr>
+      <tr><td><b>plan(수집 계획)</b></td><td>사이트를 어떻게 훑을지 적은 설정. 없으면 시작할 수 없음</td></tr>
+      <tr><td><b>실행기</b></td><td>사이트 수집 요청을 받아 실제로 수집을 돌리는 프로그램</td></tr>
+      <tr><td><b>검토 필요</b></td><td>받은 수가 사이트 총건수와 다르거나 확인할 점이 있는 사이트</td></tr>
+      <tr><td><b>접근 제한</b></td><td>사이트가 수집을 막아 사이트 쪽 허가가 있어야 하는 곳</td></tr>
+      <tr><td><b>반영</b></td><td>수집이 끝난 사이트 문서를 운영 DB에 넣는 일(매시간 자동)</td></tr>
+    </tbody>
+  </table></div>
+</section>
+</main>
+</div>
+</body>
+</html>

@@ -1,6 +1,8 @@
 // `locked` marks a route that sits behind the separate Basic-auth prompt, so
 // the menu can warn before an operator clicks into a password dialog.
-export type NavItem = Readonly<{ href: string; label: string; match: readonly string[]; locked?: boolean }>;
+// `external` marks a static file under public/ (not a Next route): the menu
+// must use a plain <a> so the browser loads it instead of client routing.
+export type NavItem = Readonly<{ href: string; label: string; match: readonly string[]; locked?: boolean; external?: boolean }>;
 export type NavGroup = Readonly<{ label: string; items: readonly NavItem[] }>;
 
 // Grouped by what the operator is doing: starting collection, watching it,
@@ -33,7 +35,10 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   },
   {
     label: "기타",
-    items: [{ href: "/", label: "작업 대시보드 (암호 필요)", match: ["/"], locked: true }],
+    items: [
+      { href: "/guide/index.html", label: "사용 안내", match: ["/guide"], external: true },
+      { href: "/", label: "작업 대시보드 (암호 필요)", match: ["/"], locked: true },
+    ],
   },
 ];
 
