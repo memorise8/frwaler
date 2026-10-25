@@ -379,3 +379,62 @@ class InriaFrFrCrawler(BaseCrawler):
         if m:
             return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
         return ""
+
+    # ------------------------------------------------------------------
+    # Enumeration split (S-open-g5): pure parsing, crawl() unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Listing page -> rows (detail_url, list_title, list_tag) as _crawl_impl() builds them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        if "Making sure you're not a bot" in html or 'id="anubis_challenge"' in html:
+            raise PermanentFailure("listing_parse_error:anubis_challenge")
+        soup = self._make_soup(html, context="enumeration list")
+        if soup is None or soup.find("main") is None:
+            raise PermanentFailure("listing_parse_error:missing_main")
+        rows = []
+        for art in soup.select("article.news"):
+            about = (art.get("about") or "").strip()
+            if not re.match(r"^/(?:index(?:\.|%2[eE])php/)?fr/", about):
+                continue
+            detail_url = urljoin(self.base_url, about)
+            h3 = art.select_one("h3 span") or art.select_one("h3")
+            list_title = self._clean_text(h3.get_text(" ", strip=True)) if h3 else ""
+            tag_el = art.select_one(".field--name-field-main-tag .field__item")
+            list_tag = self._clean_text(tag_el.get_text(" ", strip=True)) if tag_el else ""
+            rows.append({
+                "url": detail_url,
+                "slug": urlparse(detail_url).path.rstrip("/").rsplit("/", 1)[-1],
+                "list_title": list_title,
+                "list_tag": list_tag,
+            })
+        return rows
+
+    def _enumeration_paper(self, html, item):
+        """Detail page + row -> paper (None = crawl()'s short-abstract skip)."""
+        detail_url = item["url"]
+        detail_soup = self._make_soup(html, context=f"detail {detail_url}")
+        if detail_soup is None:
+            return None
+        parsed = self._parse_detail(detail_soup, detail_url, item.get("list_title", ""), item.get("list_tag", ""))
+        abstract = parsed.get("abstract", "")
+        if len(abstract) < self._MIN_ABSTRACT:
+            return None
+        return {
+            "id": None,
+            "site_id": self.site_id,
+            "external_id": parsed["external_id"],
+            "title": parsed["title"],
+            "abstract": abstract,
+            "authors": parsed["authors"],
+            "department": parsed["publisher"],
+            "category": parsed["category"],
+            "keywords": parsed["keywords"],
+            "published_date": parsed["published_date"],
+            "url": detail_url,
+            "pdf_url": parsed.get("pdf_url") or "",
+            "doi": "",
+            "metadata": json.dumps(parsed["metadata"], ensure_ascii=False),
+        }

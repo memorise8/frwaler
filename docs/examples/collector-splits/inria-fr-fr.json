@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "sites": {
+    "inria-fr-fr": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.inria.fr",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": ["html"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["html", "item"]
+      },
+      "listing": {
+        "url": "https://www.inria.fr/fr/espace-presse",
+        "page_param": "page",
+        "start_page": 0,
+        "parser": {
+          "type": "adapter",
+          "key_field": "slug",
+          "url_field": "url",
+          "title_field": "list_title",
+          "listing_marker": "main"
+        }
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}
