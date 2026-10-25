@@ -214,7 +214,7 @@ export default function RunPanel({ siteId, status, category, reason }: Readonly<
               ))}
             </div>
           )}
-          <p className="run-tracking-link"><Link href="/#jobs">작업 현황에서 전체 목록 보기 →</Link></p>
+          <p className="run-tracking-link"><Link href="/#jobs" title="별도 암호를 묻는 화면입니다.">작업 현황에서 전체 목록 보기 (암호 필요) →</Link></p>
         </div>
       )}
       <FileBackfill key={siteId} siteId={siteId} />

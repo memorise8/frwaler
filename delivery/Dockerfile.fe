@@ -18,6 +18,8 @@ ENV NODE_ENV=production
 
 COPY --from=production-dependencies /app/delivery/fe/node_modules ./node_modules
 COPY --from=build /app/delivery/fe/.next ./.next
+# Static pages served as-is (e.g. /guide/index.html, the operator guide).
+COPY --from=build /app/delivery/fe/public ./public
 COPY delivery/fe/package.json delivery/fe/package-lock.json ./
 
 # The current frontend reads the audited crawler catalogue and taxonomy at

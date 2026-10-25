@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { HOME_HREF, isActiveNav, NAV_GROUPS, NAV_ITEMS } from "../src/lib/nav-items";
 
@@ -28,9 +30,9 @@ describe("NAV_GROUPS / NAV_ITEMS", () => {
       ["사이트 수집", "수집 예약", "백필 진행"],
       ["수집기 상태", "건강 점검", "수집 상태"],
       ["문서 탐색", "번역 작업"],
-      ["작업 대시보드 (암호 필요)"],
+      ["사용 안내", "작업 대시보드 (암호 필요)"],
     ]);
-    expect(NAV_ITEMS.map((item) => item.href)).toEqual(["/site-collect", "/schedules", "/backfill", "/crawlers", "/health", "/collected", "/documents", "/translations", "/"]);
+    expect(NAV_ITEMS.map((item) => item.href)).toEqual(["/site-collect", "/schedules", "/backfill", "/crawlers", "/health", "/collected", "/documents", "/translations", "/guide/index.html", "/"]);
   });
 
   // "/" sits behind a separate Basic-auth prompt: neither the logo nor an
@@ -40,6 +42,14 @@ describe("NAV_GROUPS / NAV_ITEMS", () => {
     const locked = NAV_ITEMS.filter((item) => item.locked);
     expect(locked.map((item) => item.href)).toEqual(["/"]);
     expect(locked[0]!.label).toContain("암호 필요");
+  });
+
+  // The guide is a static file under public/: it must be marked so the menu
+  // renders a plain <a> (client routing would 404 on a non-route path).
+  it("marks the static guide as an external link", () => {
+    const external = NAV_ITEMS.filter((item) => item.external);
+    expect(external.map((item) => item.href)).toEqual(["/guide/index.html"]);
+    expect(existsSync(join(__dirname, "../public/guide/index.html"))).toBe(true);
   });
 
   it("uses 수집기, never 크롤러, in menu labels", () => {

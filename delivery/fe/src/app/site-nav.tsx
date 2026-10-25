@@ -15,6 +15,9 @@ export const SiteNav = () => {
           <div className="nav-group-links">
             {group.items.map((item) => {
               const active = isActiveNav(pathname, item.match);
+              if (item.external) {
+                return <a className="nav-link" href={item.href} key={item.href}>{item.label}</a>;
+              }
               return (
                 <Link
                   aria-current={active ? "page" : undefined}

@@ -6,6 +6,7 @@ import { getDocumentCatalogue } from "@/lib/document-catalogue";
 import { getVerificationStats } from "@/lib/database-stats";
 import { contradictsAudit, describeVerification, indexVerification, resolveVerificationState, VERIFICATION_LABEL } from "@/lib/crawler-verification";
 import RunPanel from "@/components/run-panel";
+import { formatSeoul } from "@/lib/seoul-time";
 import DatePlanPanel from "@/components/date-plan-panel";
 
 export const dynamic = "force-dynamic";
@@ -50,7 +51,7 @@ export default async function CrawlerDetail({ params }: Readonly<{ params: Promi
       <section className="catalogue-section" aria-labelledby="crawler-evidence-heading">
         <div className="section-heading">
           <div><p className="eyebrow">DATABASE EVIDENCE</p><h2 id="crawler-evidence-heading">실제 수집 문서</h2></div>
-          <p>{evidence.kind === "unavailable" ? "실시간 조회 불가" : `실시간 조회 ${new Date(evidence.measuredAt).toLocaleString("ko-KR")}`}</p>
+          <p>{evidence.kind === "unavailable" ? "실시간 조회 불가" : `실시간 조회 ${formatSeoul(evidence.measuredAt)} (한국 시각)`}</p>
         </div>
 
         {evidence.kind === "unavailable" && (

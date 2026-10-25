@@ -192,7 +192,7 @@ export default function CollectConsole({ data, fetchedAt }: Readonly<{ data: Con
             <span>마지막 조회 {formatSeoul(fetchedAt * 1000)} ({ago(now - fetchedAt)}) · 15초마다 갱신 · {runnerMeta}
               {data.stats ? ` · DB 문서 ${fmt(data.stats.documents)}건 · 사이트 ${fmt(data.stats.sites)}곳` : ""}
               {data.taxonomyVersion ? ` · 분류 ${data.taxonomyVersion}` : ""}</span>
-            {" · "}<Link href="/">작업 대시보드</Link>
+            {" · "}<Link href="/" title="별도 암호를 묻는 화면입니다.">작업 대시보드 (암호 필요)</Link>
           </div>
         </div>
         <div className="ctl">

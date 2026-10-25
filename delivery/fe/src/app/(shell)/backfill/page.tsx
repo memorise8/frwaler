@@ -1,3 +1,4 @@
+import { operatorHeaders } from "@/lib/backend-auth";
 import { getCrawlerHealth } from "@/lib/crawler-health";
 import { formatSeoul } from "@/lib/seoul-time";
 import { backfillStateLabel, formatBackfillPercent, type ProgressRow } from "@/lib/backfill-progress";
@@ -20,7 +21,7 @@ const backendUrl = (): string => (process.env.BE_URL ?? "http://127.0.0.1:8080")
 
 async function loadProgress(): Promise<ProgressSite[] | null> {
   try {
-    const response = await fetch(`${backendUrl()}/progress`, { cache: "no-store", signal: AbortSignal.timeout(8000) });
+    const response = await fetch(`${backendUrl()}/progress`, { headers: operatorHeaders(), cache: "no-store", signal: AbortSignal.timeout(8000) });
     if (!response.ok) return null;
     return ((await response.json()) as { sites: ProgressSite[] }).sites;
   } catch {
@@ -104,7 +105,7 @@ export default async function BackfillProgress() {
                 })}
               </tbody>
             </table>
-            {!rows.length && <div className="empty">백필 진행 기록이 없습니다.</div>}
+            {!rows.length && <div className="empty">불러오기는 됐지만 운영 DB 에 백필 진행 기록이 없습니다. 사이트별 수집 진행은 <a href="/site-collect">사이트 수집</a>에서 봅니다.</div>}
           </div>
         </>
       )}
