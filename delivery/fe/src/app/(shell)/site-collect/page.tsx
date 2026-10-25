@@ -35,7 +35,10 @@ async function loadConsole() {
   return { now, data: buildConsole({ sites, uncollected, runs, health, stats, progress }, taxonomy as Taxonomy, crawlerNames(), now) };
 }
 
-export default async function SiteCollectPage() {
+// ?site=<id>: opened from the crawler screens ("수집은 사이트 수집에서 시작합니다 →")
+// so the operator lands on that site's detail instead of the attention list.
+export default async function SiteCollectPage({ searchParams }: Readonly<{ searchParams: Promise<{ site?: string | string[] }> }>) {
+  const { site } = await searchParams;
   const { data, now } = await loadConsole();
-  return <SiteCollectConsole data={data} fetchedAt={now} />;
+  return <SiteCollectConsole data={data} fetchedAt={now} initialSite={typeof site === "string" && site.trim() ? site.trim() : null} />;
 }
