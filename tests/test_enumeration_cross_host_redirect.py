@@ -132,7 +132,32 @@ class RunnerCrossHostTest(unittest.TestCase):
             return board(url)
         result = self.env.run(board_plan(), None, transport=RecordingTransport(handle))
         self.assertEqual("cross_host_redirect_consecutive", result["stop_reason"], result)
+        self.assertEqual("access_blocked", result["status"], result)
         self.assertEqual(0, len(self.env.docs()))
+
+    def test_consecutive_temporary_failures_stop_resumably(self):
+        # robots.txt of the other host unreachable for every detail: resumable stop with a cooldown,
+        # not a hold that needs a person (re-review NEW-1).
+        board = FakeBoard(8)
+
+        def handle(method, url, data):
+            parts = urlsplit(url)
+            if parts.hostname == "other.test":
+                return TransportError("ConnectTimeout")
+            if parts.path == "/robots.txt":
+                return NO_RULES
+            if parts.path == "/view":
+                return moved("https://other.test" + parts.path + "?" + parts.query)
+            return board(url)
+        result = self.env.run(board_plan(), None, transport=RecordingTransport(handle))
+        self.assertEqual(("incomplete", "cross_host_redirect_consecutive"), (result["status"], result["stop_reason"]), result)
+        self.assertIn("cooldown_until", self.env.store.site("fake-site")["state"])
+
+    def test_plan_limit_is_validated(self):
+        from crawler.enumeration.plan import PlanError
+        with self.assertRaises(PlanError):
+            self.env.plan(board_plan(max_consecutive_cross_host_redirect=0))
+        self.env.plan(board_plan(max_consecutive_cross_host_redirect=3))
 
 
 if __name__ == "__main__":

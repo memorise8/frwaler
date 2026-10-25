@@ -101,6 +101,7 @@ class SiteRunner:
         self._login_details = 0
         self._robots_details = 0
         self._cross_host_details = 0
+        self._cross_host_transient = False
         self._identity_reviews = 0
         self.stats = {"batches": 0, "listed": 0, "skipped_known": 0, "saved_new": 0, "saved_existing": 0,
                       "existing_document": 0, "identity_collisions": 0, "listing_identity_conflicts": 0,
@@ -232,6 +233,7 @@ class SiteRunner:
         self._login_details = 0
         self._robots_details = 0
         self._cross_host_details = 0
+        self._cross_host_transient = False
         try:
             seq_id, created, note = self.adapter.save(paper)
         except EnumerationStop:
@@ -498,18 +500,25 @@ class SiteRunner:
     @contextlib.contextmanager
     def detail_redirects(self):
         """Fetcher.get treats a detail redirect to an unusable host other than the site's as an item failure."""
-        self.fetcher.foreign_redirect_item = site_host_keys(self.plan.base_url, self.plan.listing.get("url"))
+        self.fetcher.foreign_redirect_item = site_host_keys(self.plan.base_url, self.plan.listing.get("url"),
+                                                            self.plan.section("sitemap").get("sitemap_url"))
         try:
             yield
         finally:
             self.fetcher.foreign_redirect_item = None
 
     def cross_host_failure(self, exc, item):
-        """Consecutive detail redirects to unusable other hosts mean the site moved there: stop it."""
+        """Consecutive detail redirects to unusable other hosts: stop the site. All refusals or holds
+        mean the site moved to a host that will not have us (held for a person); any temporary
+        failure in the streak (robots.txt unreachable, rate limit) is a resumable stop with a cooldown."""
         if not str(exc.reason).startswith("cross_host_redirect:"):
             return
         self._cross_host_details += 1
-        if self._cross_host_details >= int(self.plan.raw.get("max_consecutive_cross_host_redirect") or 5):
+        self._cross_host_transient = self._cross_host_transient or isinstance(exc, TransientFailure)
+        limit = self.plan.raw.get("max_consecutive_cross_host_redirect")
+        if self._cross_host_details >= (5 if limit is None else int(limit)):
+            if self._cross_host_transient:
+                raise RobotsUnavailable("cross_host_redirect_consecutive", item.url) from None
             raise AccessBlocked("cross_host_redirect_consecutive", item.url) from None
 
     def review_counts(self):

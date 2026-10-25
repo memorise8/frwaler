@@ -659,6 +659,9 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
     robots_limit = raw.get("max_consecutive_robots_disallowed")
     if type(robots_limit) is not int or robots_limit < 1:
         raise PlanError(f"{site_id}: max_consecutive_robots_disallowed must be a positive integer")
+    cross_limit = raw.get("max_consecutive_cross_host_redirect")  # optional; the runner's default is 5
+    if cross_limit is not None and (type(cross_limit) is not int or cross_limit < 1):
+        raise PlanError(f"{site_id}: max_consecutive_cross_host_redirect must be a positive integer")
     robots_ratio = raw.get("max_robots_disallowed_ratio", 0.0)
     if type(robots_ratio) not in (int, float) or not 0 <= robots_ratio < 1:
         raise PlanError(f"{site_id}: max_robots_disallowed_ratio must be within [0, 1)")
