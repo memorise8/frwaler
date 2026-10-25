@@ -10,27 +10,29 @@
 :root{
   --bg:#f5f6f4; --surface:#ffffff; --fg:#1d2420; --muted:#5d6a63; --line:#dbe1dc;
   --accent:#2f6b52; --ok:#2f7d55; --warn:#a8741a; --stop:#b23a30; --key:#eef2ef;
+  --pin:#c4501b; --pin-ring:#ffffff;
   --sans:"IBM Plex Sans KR",system-ui,-apple-system,"Malgun Gothic",sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#131815; --surface:#1b221e; --fg:#e3e9e5; --muted:#9aa8a0; --line:#2c3630; --key:#25302a;
-  --accent:#74c19c; --ok:#6cc296; --warn:#e0b25a; --stop:#f0786c; color-scheme:dark}}
+  --accent:#74c19c; --ok:#6cc296; --warn:#e0b25a; --stop:#f0786c; --pin:#d4561f; --pin-ring:#131815; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#131815; --surface:#1b221e; --fg:#e3e9e5; --muted:#9aa8a0; --line:#2c3630; --key:#25302a;
-  --accent:#74c19c; --ok:#6cc296; --warn:#e0b25a; --stop:#f0786c; color-scheme:dark}
+  --accent:#74c19c; --ok:#6cc296; --warn:#e0b25a; --stop:#f0786c; --pin:#d4561f; --pin-ring:#131815; color-scheme:dark}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans);font-size:15px;line-height:1.7;
-  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px;word-break:keep-all}
-.wrap{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:200px minmax(0,1fr);gap:40px}
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 64px;word-break:keep-all;overflow-wrap:anywhere}
+.wrap{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:200px minmax(0,1fr);gap:40px}
 nav.toc{position:sticky;top:24px;align-self:start;font-size:.9rem}
 nav.toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+nav.toc ol ol{padding-left:12px;gap:2px;margin-top:2px;font-size:.85rem}
 nav.toc a{color:var(--muted);text-decoration:none}
 nav.toc a:hover{color:var(--accent)}
-main{min-width:0;display:flex;flex-direction:column;gap:36px}
+main{min-width:0;display:flex;flex-direction:column;gap:40px}
 h1{font-size:1.7rem;margin:0;text-wrap:balance}
 h2{font-size:1.2rem;margin:0 0 12px;text-wrap:balance;scroll-margin-top:16px}
-h3{font-size:1rem;margin:18px 0 8px}
+h3{font-size:1rem;margin:22px 0 8px;scroll-margin-top:16px}
 p{margin:0 0 8px}
 a{color:var(--accent)}
 .meta{color:var(--muted);font-size:.9rem;margin-top:6px}
@@ -46,10 +48,30 @@ tr:last-child td{border-bottom:0}
 ol.steps{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px}
 ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
 kbd,.btn{font-family:var(--sans);font-size:.85em;background:var(--key);border:1px solid var(--line);border-radius:5px;padding:1px 7px;white-space:nowrap}
-.flows{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.flows{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:14px}
 .flows .card h3{margin-top:0}
 .note{color:var(--muted);font-size:.9rem}
-@media (max-width:820px){.wrap{grid-template-columns:1fr;gap:20px} nav.toc{position:static} nav.toc ol{flex-direction:row;flex-wrap:wrap;gap:6px 14px}}
+
+/* Annotated screenshots: badges are positioned in % so they scale with the image */
+figure.shot{margin:10px 0 6px}
+.shotbox{position:relative;width:100%}
+.shotbox img{display:block;width:100%;height:auto;border:1px solid var(--line);border-radius:8px;background:#fff}
+.pin,.num{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;background:var(--pin);color:#fff;font-family:var(--sans);font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.pin{position:absolute;transform:translate(-50%,-50%);width:clamp(18px,2.2vw,26px);height:clamp(18px,2.2vw,26px);font-size:clamp(10px,1.2vw,13px);
+  box-shadow:0 0 0 2px var(--pin-ring),0 2px 6px rgba(0,0,0,.45);pointer-events:none}
+td[rowspan]{white-space:nowrap}
+.swipe{display:none;color:var(--muted);font-size:.8rem;margin:2px 0 0}
+.pin.a-l{transform:translate(-100%,-50%)} .pin.a-r{transform:translate(0,-50%)} .pin.a-t{transform:translate(-50%,-100%)}
+figcaption{color:var(--muted);font-size:.85rem;margin-top:6px}
+ol.legend{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:7px}
+ol.legend li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px;align-items:start}
+.num{width:22px;height:22px;font-size:12px;margin-top:2px}
+.pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+.pair > div{min-width:0}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .shotbox img{filter:brightness(.9)}}
+:root[data-theme="dark"] .shotbox img{filter:brightness(.9)}
+@media (max-width:820px){.wrap{grid-template-columns:1fr;gap:20px} nav.toc{position:static} nav.toc ol{flex-direction:row;flex-wrap:wrap;gap:6px 14px} nav.toc ol ol{display:none} .pair{grid-template-columns:1fr}}
+@media (max-width:700px){figure.shot.wide{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:28px 4px 6px 28px} figure.shot.wide .shotbox{width:760px} .swipe{display:block}}
 </style>
 </head>
 <body>
@@ -58,11 +80,26 @@ kbd,.btn{font-family:var(--sans);font-size:.85em;background:var(--key);border:1p
   <ol>
     <li><a href="#start">처음 볼 곳</a></li>
     <li><a href="#menu">메뉴 한눈에</a></li>
-    <li><a href="#collect">사이트 수집 쓰는 법</a></li>
+    <li><a href="#collect">사이트 수집 쓰는 법</a>
+      <ol>
+        <li><a href="#sc-top">첫 화면</a></li>
+        <li><a href="#sc-detail">사이트 상세</a></li>
+        <li><a href="#sc-blocked">막힌 예</a></li>
+        <li><a href="#sc-confirm">확인 창</a></li>
+      </ol>
+    </li>
     <li><a href="#flows">자주 하는 일</a></li>
     <li><a href="#blocked">버튼이 막힐 때</a></li>
     <li><a href="#numbers">숫자 읽는 법</a></li>
-    <li><a href="#screens">다른 화면</a></li>
+    <li><a href="#screens">다른 화면</a>
+      <ol>
+        <li><a href="#collected">수집 상태</a></li>
+        <li><a href="#documents">문서 탐색</a></li>
+        <li><a href="#schedules">수집 예약</a></li>
+        <li><a href="#health">건강 점검</a></li>
+        <li><a href="#crawlers">수집기 상태</a></li>
+      </ol>
+    </li>
     <li><a href="#rules">수집 규칙</a></li>
     <li><a href="#words">용어</a></li>
   </ol>
@@ -71,7 +108,7 @@ kbd,.btn{font-family:var(--sans);font-size:.85em;background:var(--key);border:1p
 <header>
   <a class="back" href="/site-collect">← 사이트 수집으로</a>
   <h1>Libertree 사용 안내</h1>
-  <p class="meta">운영 화면으로 사이트 수집을 시작하고, 진행을 보고, 받은 문서를 찾는 방법 · 2026-10-25 판</p>
+  <p class="meta">운영 화면으로 사이트 수집을 시작하고, 진행을 보고, 받은 문서를 찾는 방법 · 2026-10-25 판 · 그림은 10-25 실제 화면</p>
 </header>
 
 <section id="start">
@@ -83,12 +120,22 @@ kbd,.btn{font-family:var(--sans);font-size:.85em;background:var(--key);border:1p
     <li>모든 실행 버튼은 확인 창이 먼저 뜨고, 「확인」을 눌러야 요청이 나갑니다.</li>
     <li>화면은 15초마다 저절로 새로 고쳐집니다. 바로 보고 싶으면 <span class="btn">새로고침</span>을 누릅니다.</li>
     <li>시각은 모두 한국 시간입니다.</li>
+    <li>아래 그림의 <span class="num" aria-hidden="true">1</span> 같은 번호는 그림 바로 아래 설명의 번호와 같습니다. 그림 속 숫자(건수·시각)는 찍은 때의 값이라 지금과 다를 수 있습니다.</li>
   </ul>
 </section>
 
 <section id="menu">
   <h2>메뉴 한눈에</h2>
-  <div class="tbl"><table>
+  <p>모든 화면 맨 위에 같은 메뉴 줄이 있습니다. 작은 글씨(수집·상태·결과·기타)가 묶음 이름입니다.</p>
+  <figure class="shot wide" style="max-width:1071px"><div class="shotbox"><img src="img/menu.webp" width="1071" height="68" alt="위쪽 메뉴 줄: 수집·상태·결과·기타 묶음과 사용 안내, 작업 대시보드" loading="lazy"><span class="pin a-r" style="left:22.19%;top:20.29%" aria-hidden="true">1</span><span class="pin a-r" style="left:43.51%;top:20.29%" aria-hidden="true">2</span><span class="pin a-r" style="left:64.84%;top:20.29%" aria-hidden="true">3</span><span class="pin a-r" style="left:78.5%;top:20.29%" aria-hidden="true">4</span><span class="pin a-t" style="left:90.77%;top:26.91%" aria-hidden="true">5</span></div></figure><p class="swipe">폰에서는 그림을 옆으로 밀어 볼 수 있습니다.</p>
+  <ol class="legend">
+    <li><span class="num">1</span><span><b>수집</b> 묶음: 사이트 수집(주 화면) · 수집 예약 · 백필 진행</span></li>
+    <li><span class="num">2</span><span><b>상태</b> 묶음: 수집기 상태 · 건강 점검 · 수집 상태</span></li>
+    <li><span class="num">3</span><span><b>결과</b> 묶음: 문서 탐색 · 번역 작업</span></li>
+    <li><span class="num">4</span><span><b>기타</b> 묶음의 <b>사용 안내</b>: 지금 보고 있는 이 설명서입니다.</span></li>
+    <li><span class="num">5</span><span><b>🔒 작업 대시보드</b>: 별도 암호가 필요한 관리 화면입니다. 평소에는 열 일이 없습니다.</span></li>
+  </ol>
+  <div class="tbl" style="margin-top:14px"><table>
     <thead><tr><th>묶음</th><th>메뉴</th><th>이럴 때 엽니다</th></tr></thead>
     <tbody>
       <tr><td rowspan="3">수집</td><td><b>사이트 수집</b></td><td>사이트별 상태 보기, 시험 수집·전체 수집 시작, 취소 <b>(주 화면)</b></td></tr>
@@ -99,31 +146,90 @@ kbd,.btn{font-family:var(--sans);font-size:.85em;background:var(--key);border:1p
       <tr><td>수집 상태</td><td>DB에 들어 있는 전체 문서·PDF 수, 국가·유형 분포</td></tr>
       <tr><td rowspan="2">결과</td><td>문서 탐색</td><td>받은 문서 찾기와 상세 보기</td></tr>
       <tr><td>번역 작업</td><td>제목 번역·초록 요약 작업</td></tr>
-      <tr><td>기타</td><td>작업 대시보드 🔒</td><td>별도 암호가 필요한 관리 화면</td></tr>
+      <tr><td rowspan="2">기타</td><td>사용 안내</td><td>이 설명서</td></tr>
+      <tr><td>작업 대시보드 🔒</td><td>별도 암호가 필요한 관리 화면</td></tr>
     </tbody>
   </table></div>
 </section>
 
 <section id="collect">
   <h2>사이트 수집 쓰는 법</h2>
-  <h3>1. 위쪽: 상태 칩</h3>
-  <p><span class="btn">수집 중</span> <span class="btn">멈춤</span> <span class="btn">검토 필요</span> <span class="btn">완료</span> <span class="btn">접근 제한</span> <span class="btn">새 수집 전</span> <span class="btn">승인 대기</span> <span class="btn">미수집</span> 칩의 숫자는 해당 사이트 수입니다. 누르면 아래 목록이 그 상태만 남고, 한 번 더 누르면 풀립니다. 붉은 「확인 필요」 띠의 <span class="btn">멈춤 N곳</span>·<span class="btn">접근 제한 N곳</span>도 같은 동작입니다.</p>
-  <p>맨 위 줄에는 실행기 상태가 나옵니다(예: 「실행기 정상 · 실행 10 · 대기 0 · 동시 16」). 「실행기 연결 안 됨」이나 「일시 중지」가 보이면 시작 버튼이 모두 꺼집니다.</p>
-  <h3>2. 가운데: 목록</h3>
-  <ul>
-    <li><b>처음에는 「주의 필요만」이 켜져 있어 일부 사이트만 보입니다.</b> 찾는 사이트가 없으면 이 체크를 풀거나 왼쪽 묶음에서 「전체」를 누릅니다.</li>
-    <li>검색칸에 사이트 ID 일부를 넣으면 바로 걸러집니다. 상태·구분·구역 필터를 함께 쓸 수 있습니다.</li>
-    <li>보기 전환으로 유형별·국가별·유형×국가 표를 볼 수 있고, 칸을 누르면 그 사이트들만 남습니다.</li>
+
+  <h3 id="sc-top">1. 첫 화면: 위쪽 상태와 목록 거르기</h3>
+  <figure class="shot wide" style="max-width:1424px"><div class="shotbox"><img src="img/sc-top.webp" width="1424" height="699" alt="사이트 수집 첫 화면: 실행기 상태 줄, 상태 칩, 확인 필요 띠, 왼쪽 묶음, 목록 위 거르기와 보기 전환 단추" loading="lazy"><span class="pin a-t" style="left:23.69%;top:8.01%" aria-hidden="true">1</span><span class="pin a-l" style="left:1.76%;top:15.16%" aria-hidden="true">2</span><span class="pin a-l" style="left:1.76%;top:32.62%" aria-hidden="true">3</span><span class="pin a-l" style="left:2.39%;top:63.95%" aria-hidden="true">4</span><span class="pin a-l" style="left:18.12%;top:60.09%" aria-hidden="true">5</span><span class="pin a-t" style="left:31.84%;top:57.8%" aria-hidden="true">6</span><span class="pin a-t" style="left:44.24%;top:57.65%" aria-hidden="true">7</span><span class="pin a-l" style="left:17.84%;top:79.04%" aria-hidden="true">8</span><span class="pin a-t" style="left:73.63%;top:4.94%" aria-hidden="true">9</span><span class="pin a-t" style="left:89.21%;top:4.79%" aria-hidden="true">10</span><span class="pin a-t" style="left:95.2%;top:4.79%" aria-hidden="true">11</span></div></figure><p class="swipe">폰에서는 그림을 옆으로 밀어 볼 수 있습니다.</p>
+  <ol class="legend">
+    <li><span class="num">1</span><span><b>실행기 상태 줄</b>: 「실행기 정상 · 실행 N · 대기 N · 동시 16」처럼 지금 도는 수집 수가 나옵니다. 「실행기 연결 안 됨」이나 「일시 중지」가 보이면 시작 버튼이 모두 꺼집니다. 같은 줄 끝의 「작업 대시보드 (암호 필요)」는 누르지 않아도 됩니다.</span></li>
+    <li><span class="num">2</span><span><b>상태 칩</b>: <span class="btn">수집 중</span> <span class="btn">멈춤</span> <span class="btn">검토 필요</span> <span class="btn">완료</span> <span class="btn">접근 제한</span> <span class="btn">새 수집 전</span> <span class="btn">승인 대기</span> <span class="btn">미수집</span>. 숫자는 그 상태의 사이트 수입니다. 누르면 다른 거르기를 풀고 그 상태만 남기며, 한 번 더 누르면 풀립니다.</span></li>
+    <li><span class="num">3</span><span><b>확인 필요 띠</b>: <span class="btn">멈춤 N곳</span>·<span class="btn">접근 제한 N곳</span>처럼 손볼 사이트 수가 붉게 나옵니다. 누르면 상태 칩과 같이 목록이 걸러집니다.</span></li>
+    <li><span class="num">4</span><span><b>왼쪽 묶음</b>: 처음에는 맨 위 「주의 필요」가 골라져 있습니다. 모든 사이트를 보려면 <b>「전체」</b>를 누릅니다. 그 아래 승인 대기·미수집·유형별(보도자료·보고서…) 묶음도 있습니다.</span></li>
+    <li><span class="num">5</span><span><b>「주의 필요만」 체크</b>: 처음에는 켜져 있어 일부 사이트만 보입니다. <b>찾는 사이트가 없으면 이 체크를 풀거나 ④의 「전체」를 누르세요.</b></span></li>
+    <li><span class="num">6</span><span><b>검색칸</b>: 사이트 ID 일부를 넣으면 바로 걸러집니다.</span></li>
+    <li><span class="num">7</span><span><b>상태·구분·구역 거르기</b>와 그 아래 국가 칩. 검색칸과 함께 쓸 수 있습니다.</span></li>
+    <li><span class="num">8</span><span><b>사이트 줄</b>: 누르면 오른쪽에 상세가 열립니다(폰은 목록 아래). 「저장 / 사이트 총건수」는 받은 수와 사이트 전체 건수입니다.</span></li>
+    <li><span class="num">9</span><span><b>보기 전환</b>: <span class="btn">유형별</span> <span class="btn">국가별</span> <span class="btn">유형 × 국가</span>. 표의 칸을 누르면 그 사이트들만 남습니다.</span></li>
+    <li><span class="num">10</span><span><b>새로고침</b>: 15초를 기다리지 않고 바로 다시 읽습니다.</span></li>
+    <li><span class="num">11</span><span><b>화면: 밝게</b>: 밝은·어두운 화면을 바꿉니다.</span></li>
+  </ol>
+
+  <h3 id="sc-detail">2. 사이트 줄을 누르면: 상세 (완료된 사이트 예)</h3>
+  <p>예: <code>academie-sciences-fr-espace-presse</code> (프랑스 · 보도자료, 120건 모두 받음). 데스크톱은 오른쪽, 폰은 목록 아래에 열립니다.</p>
+  <div class="pair">
+    <div><figure class="shot" style="max-width:470px"><div class="shotbox"><img src="img/sc-detail.webp" width="470" height="1361" alt="완료된 사이트(academie-sciences-fr-espace-presse) 상세: 상태, 커버리지, 실행 기록, 시작 전 점검, 이어받기·시험 수집 단추" loading="lazy"><span class="pin a-l" style="left:5.86%;top:3.05%" aria-hidden="true">1</span><span class="pin a-r" style="left:71.33%;top:6.74%" aria-hidden="true">2</span><span class="pin a-l" style="left:5.86%;top:15.41%" aria-hidden="true">3</span><span class="pin a-l" style="left:5.86%;top:36.43%" aria-hidden="true">4</span><span class="pin a-l" style="left:5.86%;top:43.77%" aria-hidden="true">5</span><span class="pin a-l" style="left:5.86%;top:76.76%" aria-hidden="true">6</span><span class="pin a-l" style="left:5.86%;top:89.25%" aria-hidden="true">7</span><span class="pin a-t" style="left:37.93%;top:87.93%" aria-hidden="true">8</span><span class="pin a-r" style="left:70.87%;top:89.29%" aria-hidden="true">9</span></div></figure></div>
+    <div>
+      <ol class="legend">
+        <li><span class="num">1</span><span><b>사이트 이름과 상태</b>: 「✓ 완료」「실행 가능」 같은 배지, 국가·유형, 마지막 실행 결과 한 줄.</span></li>
+        <li><span class="num">2</span><span><b>수집기 상세 · 문서</b> 링크: 「문서」를 누르면 문서 탐색이 이 사이트로 걸러져 열립니다.</span></li>
+        <li><span class="num">3</span><span><b>커버리지</b>: 막대(초록 받은 것 · 갈색 영구 실패 · 파랑 아직 못 받음)와 받은 것 / 사이트 총건수 / 아직 못 받음 / 영구 실패 / DB 문서 / 마지막 활동. 사이트 총건수 아래 「plan 예상 건수」는 사이트가 숫자를 보여 주지 않아 계획의 예상값을 쓴다는 뜻입니다.</span></li>
+        <li><span class="num">4</span><span><b>미수집 사유</b>: 못 받은 부분이 있으면 그 이유. 없으면 「미수집 목록에 없습니다」.</span></li>
+        <li><span class="num">5</span><span><b>실행 기록</b>: 시험 수집·이어받기 기록이 최근 것부터 나옵니다. 「완료 · 저장 119 · 실패 1」처럼 저장 수가 보이고, 맨 위 기록이 이 사이트의 현재 상태입니다. 실행 중이면 여기에 <span class="btn">취소</span> 버튼이 나옵니다.</span></li>
+        <li><span class="num">6</span><span><b>시작 전 점검</b>: 같은 작업이 돌고 있지 않은지, 사이트가 접근을 허용하는지, 대량 승인이 필요한지를 ✓(통과) · !(주의) · ✕(막힘)으로 보여 줍니다.</span></li>
+        <li><span class="num">7</span><span><b>이어받기 시작</b>: 받은 데서부터 끝까지 받습니다(처음이면 「수집 시작」). 누르면 확인 창이 먼저 뜹니다.</span></li>
+        <li><span class="num">8</span><span><b>시험 수집</b>: 옆 칸의 건수만큼만 받아 봅니다. 역시 확인 창이 먼저 뜹니다.</span></li>
+        <li><span class="num">9</span><span><b>건수 칸</b>: 시험 수집 건수 1~1,000, 기본 100.</span></li>
+      </ol>
+    </div>
+  </div>
+
+  <h3 id="sc-blocked">3. 막힌 예: 시작 전 점검에 ! 나 ✕ 가 있을 때</h3>
+  <div class="pair">
+    <div>
+      <p><b>승인 대기</b> — 이어받기만 막힘 (예: <code>nin-nl-publications</code>)</p>
+      <figure class="shot" style="max-width:452px"><div class="shotbox"><img src="img/sc-approval.webp" width="452" height="353" alt="승인 대기 사이트의 시작 전 점검: 이어받기 단추는 꺼지고 시험 수집은 켜져 있음" loading="lazy"><span class="pin a-l" style="left:4.1%;top:56.02%" aria-hidden="true">1</span><span class="pin a-l" style="left:4.1%;top:74.72%" aria-hidden="true">2</span><span class="pin a-t" style="left:37.45%;top:69.62%" aria-hidden="true">3</span><span class="pin a-l" style="left:4.1%;top:86.33%" aria-hidden="true">4</span></div></figure>
+      <ol class="legend">
+        <li><span class="num">1</span><span>「대량 수집 승인이 필요 없다」 줄이 <b>!</b>로 바뀌고 「승인 대기 — 이어받기(전체)는 대량 승인 전까지 거절됩니다. 시험 수집은 됩니다」가 붙습니다.</span></li>
+        <li><span class="num">2</span><span><span class="btn">이어받기 시작</span>은 흐리게 꺼져 있습니다.</span></li>
+        <li><span class="num">3</span><span><span class="btn">시험 수집</span>은 켜져 있어 승인 없이 할 수 있습니다.</span></li>
+        <li><span class="num">4</span><span>버튼 아래에 꺼진 이유가 다시 나옵니다. 예상 1만 건 이상이거나 건수를 모르면 책임자 승인이 있어야 합니다.</span></li>
+      </ol>
+    </div>
+    <div>
+      <p><b>접근 제한</b> — 둘 다 막힘 (예: <code>fss-or-kr-fss</code>)</p>
+      <figure class="shot" style="max-width:452px"><div class="shotbox"><img src="img/sc-restricted.webp" width="452" height="330" alt="접근 제한 사이트의 시작 전 점검: 접근 차단 표시와 두 단추 모두 꺼짐" loading="lazy"><span class="pin a-l" style="left:4.1%;top:33.56%" aria-hidden="true">1</span><span class="pin a-l" style="left:4.1%;top:66.74%" aria-hidden="true">2</span><span class="pin a-l" style="left:4.1%;top:79.17%" aria-hidden="true">3</span></div></figure>
+      <ol class="legend">
+        <li><span class="num">1</span><span>「사이트가 접근을 허용한다」 줄이 붉은 <b>✕</b>. 마지막 실행에서 사이트가 막았다는 뜻입니다(예: robots.txt 를 받지 못함).</span></li>
+        <li><span class="num">2</span><span><span class="btn">이어받기 시작</span>·<span class="btn">시험 수집</span> 모두 꺼집니다.</span></li>
+        <li><span class="num">3</span><span>「접근 제한·협의 필요 사이트는 시작할 수 없습니다 … 우회·재시도하지 않습니다」. 화면에서 풀 수 없고, 사이트 쪽 허가가 있어야 합니다.</span></li>
+      </ol>
+    </div>
+  </div>
+  <p class="note" style="margin-top:10px">수집 계획(plan)이 없는 사이트는 같은 자리에 「실행기에 등록된 plan 이 없습니다」가 나옵니다. 문구별 뜻과 할 일은 <a href="#blocked">버튼이 막힐 때</a> 표를 보세요.</p>
+
+  <h3 id="sc-confirm">4. 확인 창</h3>
+  <p><span class="btn">시험 수집</span>·<span class="btn">이어받기 시작</span>(또는 <span class="btn">수집 시작</span>)·<span class="btn">취소</span>를 누르면 바로 요청이 나가지 않고, 브라우저의 작은 확인 창이 먼저 뜹니다. 첫 줄은 사이트 ID, 둘째 줄이 할 일입니다.</p>
+  <div class="tbl"><table>
+    <thead><tr><th>누른 버튼</th><th>확인 창 문구</th></tr></thead>
+    <tbody>
+      <tr><td>시험 수집</td><td>「<i>사이트 ID</i> / 시험 수집 100건을 실행기에 요청할까요?」 (건수는 건수 칸의 값)</td></tr>
+      <tr><td>이어받기 시작 · 수집 시작</td><td>「<i>사이트 ID</i> / 수집(이어받기·전체)을 실행기에 요청할까요? / 대량 수집이면 승인 전까지 시작되지 않습니다.」</td></tr>
+      <tr><td>취소 (실행 기록)</td><td>「<i>사이트 ID</i> / 작업 <i>작업번호</i>을(를) 취소할까요?」</td></tr>
+    </tbody>
+  </table></div>
+  <ul style="margin-top:10px">
+    <li>사이트 ID와 건수가 맞는지 보고 <span class="btn">확인</span>을 눌러야 요청이 나갑니다. <span class="btn">취소</span>를 누르면 아무 일도 일어나지 않습니다.</li>
+    <li>받아들여지면 「요청됨 · 작업 N」이 뜨고, 잠시 뒤 실행 기록 맨 위에 대기·실행 중 줄이 생깁니다. 취소는 「다음 확인 지점에서 멈춥니다」라고 나옵니다.</li>
+    <li>거절되면 「거절됨: 이유」나 「요청을 보내지 못했습니다」가 나옵니다. 이유는 <a href="#blocked">버튼이 막힐 때</a> 표와 같습니다.</li>
   </ul>
-  <h3>3. 사이트 줄을 누르면: 상세</h3>
-  <p>데스크톱은 오른쪽, 폰은 목록 아래에 상세가 열립니다.</p>
-  <ul>
-    <li><b>커버리지</b>: 받은 수 / 사이트 총건수 / 아직 못 받은 수</li>
-    <li><b>미수집 사유</b>: 못 받은 부분이 있으면 이유</li>
-    <li><b>실행 기록</b>: 시험·전체 수집 기록, 상태(대기·실행 중·완료·취소), 저장 수. 실행 중이면 <span class="btn">취소</span> 버튼</li>
-    <li><b>시작 전 점검</b>: 지금 시작할 수 있는지와, 안 되면 그 이유</li>
-    <li>아래 버튼: <span class="btn">시험 수집</span>(건수 1~1,000, 기본 100) · <span class="btn">수집 시작</span> 또는 <span class="btn">이어받기 시작</span></li>
-  </ul>
+  <p class="note">이 설명서를 만들 때는 실제 요청이 나가지 않도록 확인 창을 띄우지 않아 그림이 없습니다.</p>
 </section>
 
 <section id="flows">
@@ -178,7 +284,7 @@ kbd,.btn{font-family:var(--sans);font-size:.85em;background:var(--key);border:1p
 
 <section id="blocked">
   <h2>버튼이 막힐 때</h2>
-  <p>상세의 「시작 전 점검」에 아래 문구 중 하나가 나옵니다.</p>
+  <p>상세의 「시작 전 점검」에 아래 문구 중 하나가 나옵니다. 실제 모습은 <a href="#sc-blocked">막힌 예</a> 그림을 보세요.</p>
   <div class="tbl"><table>
     <thead><tr><th>화면 문구</th><th>뜻</th><th>할 일</th></tr></thead>
     <tbody>
@@ -210,12 +316,90 @@ kbd,.btn{font-family:var(--sans);font-size:.85em;background:var(--key);border:1p
 
 <section id="screens">
   <h2>다른 화면</h2>
+
+  <h3 id="collected">수집 상태</h3>
+  <figure class="shot wide" style="max-width:1240px"><div class="shotbox"><img src="img/collected.webp" width="1240" height="622" alt="수집 상태: 전체 문서, PDF 확보, 텍스트 확보, 마지막 수집 카드" loading="lazy"><span class="pin a-l" style="left:4.19%;top:41.58%" aria-hidden="true">1</span><span class="pin a-l" style="left:35.81%;top:40.62%" aria-hidden="true">2</span><span class="pin a-l" style="left:67.9%;top:40.62%" aria-hidden="true">3</span><span class="pin a-l" style="left:3.71%;top:66.99%" aria-hidden="true">4</span><span class="pin a-l" style="left:87.68%;top:12.84%" aria-hidden="true">5</span><span class="pin a-l" style="left:3.87%;top:90.87%" aria-hidden="true">6</span></div></figure><p class="swipe">폰에서는 그림을 옆으로 밀어 볼 수 있습니다.</p>
+  <ol class="legend">
+    <li><span class="num">1</span><span><b>전체 문서</b>: 지금 DB에 들어 있는 문서 수와 사이트 수. 납품·보고 때 기준이 되는 숫자입니다.</span></li>
+    <li><span class="num">2</span><span><b>PDF 확보</b>: PDF 파일까지 받은 문서 수와 파일 크기 합계(30분마다 갱신). 카드를 누르면 PDF가 있는 문서만 문서 탐색에 나옵니다.</span></li>
+    <li><span class="num">3</span><span><b>텍스트 확보</b>: 본문 글자를 뽑아 둔 문서 수.</span></li>
+    <li><span class="num">4</span><span><b>마지막 수집</b>: 가장 최근에 문서가 들어온 시각.</span></li>
+    <li><span class="num">5</span><span><b>센 시각</b>: 위 숫자를 센 때. 화면을 새로 고치면 다시 셉니다.</span></li>
+    <li><span class="num">6</span><span><b>기록 점검</b>: 사이트 없는 문서, 파일 정보가 빠진 문서 수. 0건이면 정상입니다.</span></li>
+  </ol>
+  <p class="note">아래로 내리면 국가별·자료 유형별 문서 수와 「사이트별 마지막 수집」(7일 이내 / 8~30일 / 31~90일 / 90일 초과·미수집) 카드가 있습니다.</p>
+
+  <h3 id="documents">문서 탐색</h3>
+  <p>사이트를 고른 뒤 「상세 조건」을 펼친 모습입니다.</p>
+  <figure class="shot wide" style="max-width:1256px"><div class="shotbox"><img src="img/docs-list.webp" width="1256" height="704" alt="문서 탐색: 사이트 선택, 검색어, 상세 조건을 펼친 모습과 첫 결과" loading="lazy"><span class="pin a-l" style="left:3.98%;top:16.19%" aria-hidden="true">1</span><span class="pin a-l" style="left:30.45%;top:16.19%" aria-hidden="true">2</span><span class="pin a-t" style="left:86.31%;top:13.18%" aria-hidden="true">3</span><span class="pin a-l" style="left:3.98%;top:22.5%" aria-hidden="true">4</span><span class="pin a-l" style="left:3.98%;top:52.61%" aria-hidden="true">5</span><span class="pin a-l" style="left:2.79%;top:65.42%" aria-hidden="true">6</span><span class="pin a-l" style="left:13.38%;top:79.71%" aria-hidden="true">7</span><span class="pin a-l" style="left:88.9%;top:93.04%" aria-hidden="true">8</span></div></figure><p class="swipe">폰에서는 그림을 옆으로 밀어 볼 수 있습니다.</p>
+  <ol class="legend">
+    <li><span class="num">1</span><span><b>사이트</b>: 먼저 사이트를 고릅니다. 고르기 전에는 검색칸이 꺼져 있고, 사이트 이름 옆 괄호가 문서 수입니다.</span></li>
+    <li><span class="num">2</span><span><b>검색어</b>: 제목·초록·키워드에서 찾습니다.</span></li>
+    <li><span class="num">3</span><span><b>검색</b>: 조건대로 목록을 다시 불러옵니다(보기만 하는 조회). 옆의 「조건 초기화」는 모두 지웁니다.</span></li>
+    <li><span class="num">4</span><span><b>상세 조건</b>: 국가·자료 유형·언어·정렬·발행일·수집일·PDF·텍스트 조건을 펼칩니다.</span></li>
+    <li><span class="num">5</span><span><b>PDF</b>: 「확보」로 PDF가 있는 문서만 남깁니다.</span></li>
+    <li><span class="num">6</span><span><b>총 N건</b>: 지금 조건에 맞는 문서 수.</span></li>
+    <li><span class="num">7</span><span><b>제목</b>: 누르면 문서 상세가 열립니다. 아래 PDF·TEXT 표시는 파일·본문이 있다는 뜻입니다.</span></li>
+    <li><span class="num">8</span><span><b>원문 사이트 ↗</b>: 원래 사이트의 글을 새 창으로 엽니다.</span></li>
+  </ol>
+
+  <p style="margin-top:16px"><b>문서 상세 한 건</b> (제목을 눌렀을 때)</p>
+  <figure class="shot wide" style="max-width:1256px"><div class="shotbox"><img src="img/docs-detail.webp" width="1256" height="1023" alt="문서 상세 한 건: 제목, 원문 사이트 링크, 메타 정보, PDF 상자, 원문 초록" loading="lazy"><span class="pin a-l" style="left:2.79%;top:2.43%" aria-hidden="true">1</span><span class="pin a-l" style="left:2.79%;top:41.01%" aria-hidden="true">2</span><span class="pin a-t" style="left:20.64%;top:39.83%" aria-hidden="true">3</span><span class="pin a-r" style="left:36.1%;top:41.01%" aria-hidden="true">4</span><span class="pin a-l" style="left:35.56%;top:50.75%" aria-hidden="true">5</span><span class="pin a-l" style="left:4.62%;top:85.86%" aria-hidden="true">6</span><span class="pin a-l" style="left:4.94%;top:97.11%" aria-hidden="true">7</span><span class="pin a-l" style="left:52.47%;top:97.11%" aria-hidden="true">8</span></div></figure><p class="swipe">폰에서는 그림을 옆으로 밀어 볼 수 있습니다.</p>
+  <ol class="legend">
+    <li><span class="num">1</span><span><b>← 문서 탐색으로</b>: 목록으로 돌아갑니다.</span></li>
+    <li><span class="num">2</span><span><b>원문 사이트 ↗</b>: 원래 사이트의 이 글. 옆의 「수집 기관 ↗」은 기관 페이지입니다.</span></li>
+    <li><span class="num">3</span><span><b>수집기 정보 보기 →</b>: 이 사이트 수집기의 상세.</span></li>
+    <li><span class="num">4</span><span><b>이 사이트의 다른 문서 →</b>: 같은 사이트로 걸러진 문서 탐색.</span></li>
+    <li><span class="num">5</span><span><b>문서 정보</b>: 저자·발행처·저널, 발행일·게시일·수집 시각, 문서 번호.</span></li>
+    <li><span class="num">6</span><span><b>PDF 상자</b>: PDF·텍스트를 확보했는지, 파일 크기와 원본 파일명. 「PDF 열기 ↗」「추출 텍스트 열기 ↗」로 받은 파일을 봅니다.</span></li>
+    <li><span class="num">7</span><span><b>원문 초록</b>: 사이트에서 받은 초록(원래 언어).</span></li>
+    <li><span class="num">8</span><span><b>한국어 핵심 요약</b>: 번역 작업으로 만든 요약. 아직 없으면 「아직 생성된 한국어 요약이 없습니다」. 아래로 내리면 키워드·저장된 요약이 있습니다.</span></li>
+  </ol>
+
+  <h3 id="schedules">수집 예약</h3>
+  <figure class="shot wide" style="max-width:1256px"><div class="shotbox"><img src="img/schedules.webp" width="1256" height="640" alt="수집 예약: 확인 체크, 사이트 ID, 수집 주기, 1회 수집 제한, 예약 저장, 예약 목록" loading="lazy"><span class="pin a-l" style="left:4.22%;top:33.95%" aria-hidden="true">1</span><span class="pin a-l" style="left:4.46%;top:47.53%" aria-hidden="true">2</span><span class="pin a-l" style="left:27.35%;top:47.53%" aria-hidden="true">3</span><span class="pin a-l" style="left:50.24%;top:47.53%" aria-hidden="true">4</span><span class="pin a-t" style="left:84.34%;top:45.73%" aria-hidden="true">5</span><span class="pin a-l" style="left:41.99%;top:78.57%" aria-hidden="true">6</span></div></figure><p class="swipe">폰에서는 그림을 옆으로 밀어 볼 수 있습니다.</p>
+  <ol class="legend">
+    <li><span class="num">1</span><span><b>확인 체크</b>: 「수집 순서와 이어받기가 미검증인 시험 예약임을 확인합니다」. 켜야 아래 저장이 됩니다.</span></li>
+    <li><span class="num">2</span><span><b>사이트 ID</b>: 일부를 치면 자동완성됩니다. 수집 계획이 준비된 사이트만 저장됩니다.</span></li>
+    <li><span class="num">3</span><span><b>수집 주기</b>: 예: 매주(7일).</span></li>
+    <li><span class="num">4</span><span><b>1회 수집 제한</b>: 한 번 돌 때 받을 최대 건수.</span></li>
+    <li><span class="num">5</span><span><b>예약 저장</b>: 누르면 바로 예약이 만들어집니다.</span></li>
+    <li><span class="num">6</span><span><b>예약 목록</b>: 지금은 「등록된 예약이 없습니다」. 예약이 생기면 줄마다 <b>「사용」 체크</b>가 있고, 체크를 바꾼 뒤 <span class="btn">변경 저장</span>을 눌러야 반영됩니다. 지우려면 <span class="btn">삭제</span> → <span class="btn">삭제 확인</span>.</span></li>
+  </ol>
+
+  <h3 id="health">건강 점검</h3>
+  <figure class="shot wide" style="max-width:1240px"><div class="shotbox"><img src="img/health.webp" width="1240" height="759" alt="건강 점검: DB·초기화, 워커 응답, 작업 대기/실행, 수집기 표본 검사 요약" loading="lazy"><span class="pin a-l" style="left:91.3%;top:13.1%" aria-hidden="true">1</span><span class="pin a-l" style="left:3.55%;top:33.63%" aria-hidden="true">2</span><span class="pin a-l" style="left:35.65%;top:33.63%" aria-hidden="true">3</span><span class="pin a-l" style="left:67.74%;top:33.63%" aria-hidden="true">4</span><span class="pin a-l" style="left:3.55%;top:70.17%" aria-hidden="true">5</span><span class="pin a-l" style="left:35.65%;top:70.17%" aria-hidden="true">6</span><span class="pin a-l" style="left:67.74%;top:70.17%" aria-hidden="true">7</span></div></figure><p class="swipe">폰에서는 그림을 옆으로 밀어 볼 수 있습니다.</p>
+  <ol class="legend">
+    <li><span class="num">1</span><span><b>새로고침</b>: 30초를 기다리지 않고 다시 읽습니다.</span></li>
+    <li><span class="num">2</span><span><b>DB·초기화</b>: 「준비됨」이면 DB가 정상입니다.</span></li>
+    <li><span class="num">3</span><span><b>워커 응답</b>: 작업자 응답 수 / 전체 수. 둘이 같으면 정상.</span></li>
+    <li><span class="num">4</span><span><b>작업 대기 / 실행</b>: 다른 작업 대기열이라 사이트 수집이 돌고 있어도 0일 수 있습니다. 사이트 수집 진행은 사이트 수집 화면 맨 위 실행기 줄에서 봅니다.</span></li>
+    <li><span class="num">5</span><span><b>전체 수집기</b>: 코드가 올라와 있는 수집기 수.</span></li>
+    <li><span class="num">6</span><span><b>최근 표본 정상</b>: 표본 검사(제목·링크를 읽는 단계까지)를 통과한 수. 실제 저장 성공을 보장하지는 않습니다.</span></li>
+    <li><span class="num">7</span><span><b>미검사</b>: 아직 표본 검사를 하지 않은 수. 고장이라는 뜻은 아닙니다.</span></li>
+  </ol>
+  <p class="note">아래 「사이트 검색」으로 수집기를 찾고, 사이트 이름을 누르면 상세가 열립니다.</p>
+
+  <h3 id="crawlers">수집기 상태</h3>
+  <figure class="shot wide" style="max-width:1240px"><div class="shotbox"><img src="img/crawlers.webp" width="1240" height="642" alt="수집기 상태 위쪽: 납품 당시 검증일과 요약 카드, 스냅샷 안내" loading="lazy"><span class="pin a-l" style="left:89.6%;top:15.13%" aria-hidden="true">1</span><span class="pin a-l" style="left:4.19%;top:46.3%" aria-hidden="true">2</span><span class="pin a-l" style="left:36.29%;top:46.3%" aria-hidden="true">3</span><span class="pin a-l" style="left:68.39%;top:46.3%" aria-hidden="true">4</span><span class="pin a-l" style="left:3.87%;top:95.91%" aria-hidden="true">5</span></div></figure><p class="swipe">폰에서는 그림을 옆으로 밀어 볼 수 있습니다.</p>
+  <ol class="legend">
+    <li><span class="num">1</span><span><b>납품 당시 검증일</b>(2026-08-06): 회색 「납품 당시」 숫자의 기준일입니다. 지금 상태가 아닙니다.</span></li>
+    <li><span class="num">2</span><span><b>전체 수집기</b>: 등록된 수집기 수.</span></li>
+    <li><span class="num">3</span><span><b>정상 작동 (지금 확인)</b>: 이 설치에서 문서 저장까지 확인된 수집기.</span></li>
+    <li><span class="num">4</span><span><b>실패·확인 필요</b>: 코드·차단·네트워크 문제로 확인이 필요한 수집기.</span></li>
+    <li><span class="num">5</span><span><b>스냅샷 안내</b>: 상태 배지는 납품 당시 결과이고, 「여기 결과」 칸이 이 설치에서 실제로 돌린 기록입니다. 둘이 다르면 「여기 결과」가 맞습니다.</span></li>
+  </ol>
+  <div class="callout" style="margin-top:10px">
+    <p><b>이 화면은 보기 전용입니다.</b> 아래 「분류별 수집기 목록」은 사이트 검색이나 조건(상태·실패 유형·국가·자료 유형)을 골라야 목록이 나옵니다. 수집기 상태와 수집기 상세에 있던 실행·일괄 실행 영역은 화면에서 빠지고, 그 자리에 <b>「수집은 사이트 수집에서 시작합니다 →」</b> 링크가 나옵니다. 링크를 누르면 <a href="#collect">사이트 수집</a>으로 가며, 수집은 거기서 시작합니다.</p>
+  </div>
+
+  <h3>한눈에 보기</h3>
   <div class="tbl"><table>
     <thead><tr><th>화면</th><th>쓸 수 있는 것</th><th>알아 둘 점</th></tr></thead>
     <tbody>
       <tr><td>수집 예약</td><td>예약 추가·켜고 끄기·삭제</td><td>체크를 바꾼 뒤 「변경 저장」을 눌러야 반영</td></tr>
       <tr><td>백필 진행</td><td>보기만</td><td>사이트별 과거분 진행률</td></tr>
-      <tr><td>수집기 상태</td><td>국가·유형·상태로 수집기 찾기, 「상세 →」</td><td>조건을 고르기 전에는 목록이 비어 있습니다. 이 화면은 보기 전용입니다. 수집은 「수집은 사이트 수집에서 시작합니다 →」 링크를 눌러 <b>사이트 수집</b>에서 시작합니다</td></tr>
+      <tr><td>수집기 상태</td><td>국가·유형·상태로 수집기 찾기, 「상세 →」</td><td>조건을 고르기 전에는 목록이 비어 있습니다. 보기 전용이며 수집은 「수집은 사이트 수집에서 시작합니다 →」 링크로 <b>사이트 수집</b>에서 시작합니다</td></tr>
       <tr><td>건강 점검</td><td>DB·작업자 상태, 수집기 표본 검사 결과, 사이트 이름 클릭 → 상세</td><td>30초마다 갱신</td></tr>
       <tr><td>수집 상태</td><td>전체 숫자, 카드 클릭 → 해당 문서 목록</td><td></td></tr>
       <tr><td>문서 탐색</td><td>사이트별 검색, 상세, 원문 링크</td><td>사이트 전체를 한 번에 검색하지는 못합니다</td></tr>
