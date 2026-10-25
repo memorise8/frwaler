@@ -166,6 +166,112 @@ class CacGovCnHdfwCrawler(BaseCrawler):
         return ""
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points (no I/O); crawl() stays unchanged.
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _detail_text_from_html(raw: str) -> str:
+        """Pure copy of _fetch_detail_text after the fetch."""
+        if not raw:
+            return ""
+
+        for parser in ("html5lib", "lxml", "html.parser"):
+            try:
+                from bs4 import BeautifulSoup
+                soup = BeautifulSoup(raw, parser)
+                body = soup.find(id="BodyLabel")
+                if body:
+                    return body.get_text(separator=" ", strip=True)
+                mc = soup.find(class_="main-content")
+                if mc:
+                    return mc.get_text(separator=" ", strip=True)
+                break
+            except Exception:
+                continue
+
+        m = re.search(
+            r'id=["\']?BodyLabel["\']?[^>]*>([\s\S]*?)</(?:div|DIV)>',
+            raw, re.IGNORECASE,
+        )
+        if m:
+            return CacGovCnHdfwCrawler._strip_html(m.group(1))
+
+        m = re.search(
+            r'class=["\']?main-content["\']?[^>]*>([\s\S]*?)</(?:div|DIV)>',
+            raw, re.IGNORECASE,
+        )
+        if m:
+            return CacGovCnHdfwCrawler._strip_html(m.group(1))
+
+        return ""
+
+    def _enumeration_items(self, data):
+        """Rows of one JsonList page (crawl() skips rows without infourl)."""
+        rows = []
+        for item in (data or {}).get("list", []) if isinstance(data, dict) else []:
+            infourl_raw = item.get("infourl", "")
+            if not infourl_raw:
+                continue
+            row = dict(item)
+            row["url"] = self._normalize_url(infourl_raw)
+            row["published_date"] = self._parse_date(item.get("pubtime", ""))
+            rows.append(row)
+        return rows
+
+    def _enumeration_detail(self, html, item):
+        """crawl()'s row + detail page -> paper (None = skipped)."""
+        url = item["url"]
+        external_id = self._extract_id(url)
+        title = item.get("topic", "").strip()
+        description = item.get("description", "").strip()
+        pubtime = item.get("pubtime", "")
+        filltime = item.get("filltime", "")
+        published_date = self._parse_date(pubtime)
+        listed_date = self._parse_date(filltime)
+        coverurl = item.get("coverurl", "")
+        if coverurl and coverurl.startswith("//"):
+            coverurl = "https:" + coverurl
+
+        abstract = self._detail_text_from_html(html)
+
+        if len(abstract) < 50 and len(description) >= 50:
+            abstract = description
+
+        if len(abstract) < 50:
+            return None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": external_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": listed_date,
+            "url": url,
+            "pdf_url": None,
+            "authors": None,
+            "publisher": "中央网络安全和信息化委员会办公室",
+            "department": None,
+            "journal": None,
+            "keywords": None,
+            "category": "举报公告",
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": filltime,
+                    "pubtime": pubtime,
+                    "filltime": filltime,
+                    "coverurl": coverurl,
+                    "description": description,
+                    "channel_code": self._CHANNEL_CODE,
+                },
+                ensure_ascii=False,
+            ),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
