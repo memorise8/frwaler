@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "sites": {
+    "nec-go-kr-site": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.nec.go.kr",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": ["html"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["item", "first_html", "pdf_text"],
+        "second_step": {
+          "use": "detail_page",
+          "url_template": "https://www.nec.go.kr/common/board/Download.do?bcIdx={item:pdf_bc_idx}&cbIdx={item:pdf_cb_idx}&streFileNm={item:pdf_stre}",
+          "required": false,
+          "allow_hosts": []
+        },
+        "pdf_text": {"args": ["-layout"], "timeout_s": 60, "min_bytes": 101}
+      },
+      "listing": {
+        "url": "https://www.nec.go.kr/site/nec/ex/bbs/List.do",
+        "params": {"cbIdx": "1090"},
+        "page_param": "pageIndex",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "bc_idx",
+          "url_field": "detail_url",
+          "date_field": "listed_date",
+          "title_field": "title",
+          "listing_marker": "div.tableList"
+        }
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}

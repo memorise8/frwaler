@@ -10,12 +10,15 @@ import re
 import subprocess
 import tempfile
 import time
-from urllib.parse import urljoin
+from urllib.parse import unquote, urljoin
 
 from crawler.base_crawler import BaseCrawler
 
 _LIST_URL = "https://www.nec.go.kr/site/nec/ex/bbs/List.do"
 _CB_IDX = "1090"
+_ENUM_PDF_RE = re.compile(
+    r"^https://www\.nec\.go\.kr/common/board/Download\.do\?bcIdx=(\d+)&cbIdx=(\d+)&streFileNm=([^&#]+)$"
+)
 _UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -382,3 +385,83 @@ class NecGoKrSiteCrawler(BaseCrawler):
 
         print(f"[nec-go-kr-site] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (S-open-g5): pure parsing, crawl() unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """List page -> rows from _parse_list_page(); a page without the list block is an error."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = _bs(html)
+        if soup is None or soup.select_one("div.tableList") is None:
+            raise PermanentFailure("listing_parse_error:missing_table_list")
+        rows = _parse_list_page(html)
+        for row in rows:
+            # The row's own PDF link split into parts, so the plan's second step can request
+            # exactly that address (ext:detail_aux_request url_template); other shapes: no link.
+            m = _ENUM_PDF_RE.match(row.get("pdf_url") or "")
+            if m:
+                row["pdf_bc_idx"], row["pdf_cb_idx"] = m.group(1), m.group(2)
+                row["pdf_stre"] = unquote(m.group(3))
+        return rows
+
+    def _enumeration_paper(self, item, first_html, pdf_text):
+        """List row + detail page + framework-extracted text of the row's PDF -> paper.
+        None = crawl()'s short-abstract skip (also when no PDF text could be read)."""
+        bc_idx = item["bc_idx"]
+        published_date = item["listed_date"]
+        department = ""
+        pdf_url = item["pdf_url"]
+        original_filename = item["original_filename"]
+
+        if first_html:
+            d = _parse_detail_page(first_html)
+            if d["published_date"]:
+                published_date = d["published_date"]
+            if d["department"]:
+                department = d["department"]
+            if not pdf_url and d["pdf_url"]:
+                pdf_url = d["pdf_url"]
+            if not original_filename and d["original_filename"]:
+                original_filename = d["original_filename"]
+
+        if not original_filename and pdf_url:
+            m = re.search(r"streFileNm=([^&]+)", pdf_url)
+            if m:
+                original_filename = m.group(1)
+
+        # crawl(): _pdf_to_text(pdf_url) -> pdftotext -layout stdout, stripped. The framework runs
+        # pdftotext on the second-step response; without the row's PDF there is no text here.
+        abstract = (pdf_text or "").strip() if item.get("pdf_stre") else ""
+        if len(abstract) < 50:
+            return None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": bc_idx,
+            "url": item["detail_url"],
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": published_date,
+            "posted_date": item["listed_date"],
+            "publisher": "중앙선거관리위원회",
+            "authors": "",
+            "keywords": "",
+            "category": "보도자료",
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "doi": "",
+            "metadata": json.dumps(
+                {
+                    "bcIdx": bc_idx,
+                    "cbIdx": _CB_IDX,
+                    "posted_date": item["listed_date"],
+                    "originalFilename": original_filename,
+                    "department": department,
+                },
+                ensure_ascii=False,
+            ),
+        }
