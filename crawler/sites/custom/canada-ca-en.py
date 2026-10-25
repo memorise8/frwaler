@@ -157,10 +157,91 @@ def _fetch_detail_abstract(url: str) -> str:
     return ""
 
 
+def _detail_abstract_from_html(html: str) -> str:
+    """Pure copy of _fetch_detail_abstract after the fetch (no I/O)."""
+    if not html:
+        return ""
+    soup = _make_soup(html)
+    if not soup:
+        return ""
+
+    # Preferred: <p class="teaser hidden"> or <p class="teaser">
+    teaser = soup.find("p", class_="teaser")
+    if teaser:
+        text = teaser.get_text(strip=True)
+        if len(text) >= 50:
+            return text
+
+    # Fall back: first two substantive paragraphs inside .cmp-text
+    chunks: list[str] = []
+    for div in soup.find_all("div", class_="cmp-text"):
+        for p in div.find_all("p"):
+            text = p.get_text(strip=True)
+            if len(text) > 40:
+                chunks.append(text)
+            if len(chunks) >= 2:
+                break
+        if len(chunks) >= 2:
+            break
+
+    if chunks:
+        return " ".join(chunks)[:2000]
+
+    # Last resort: main content text
+    main = soup.find("main")
+    if main:
+        return main.get_text(separator=" ", strip=True)[:2000]
+
+    return ""
+
+
 class CanadaCaEnCrawler(BaseCrawler):
     site_id = "canada-ca-en"
     site_name = "Custom: canada-ca-en"
     base_url = "https://www.canada.ca"
+
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (no I/O); crawl() stays unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Result rows of one search page, via crawl()'s parser."""
+        return _parse_list_page(html or "")
+
+    def _enumeration_detail(self, html, item):
+        """crawl()'s item -> paper. The detail page is always fetched by the framework, but its
+        text is only used when the listing teaser is < 100 chars, exactly as in crawl()."""
+        it = item
+        abstract = it["abstract"]
+        if len(abstract) < 100:
+            detail_abstract = _detail_abstract_from_html(html)
+            if len(detail_abstract) > len(abstract):
+                abstract = detail_abstract
+
+        if len(abstract) < 50:
+            return None
+
+        metadata = json.dumps(
+            {"posted_date": it.get("listed_date"), "category": it.get("category")},
+            ensure_ascii=False,
+        )
+        return {
+            "site_id": self.site_id,
+            "external_id": it["external_id"],
+            "post_number": it["post_number"],
+            "title": it["title"],
+            "abstract": abstract,
+            "published_date": it["published_date"],
+            "listed_date": it["listed_date"],
+            "publisher": it["publisher"],
+            "category": it["category"],
+            "url": it["url"],
+            "pdf_url": None,
+            "keywords": None,
+            "doi": None,
+            "original_filename": None,
+            "metadata": metadata,
+        }
 
     def crawl(self, limit=None):
         saved = 0
