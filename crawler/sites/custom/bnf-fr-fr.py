@@ -277,3 +277,115 @@ class BnfFrFrCrawler(BaseCrawler):
         lim_str = str(limit) if limit is not None else "∞"
         print(f"[bnf-fr-fr] Done: saved {saved} records (limit={lim_str}, pages={page_num}).")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (S-open-g5): pure parsing, crawl() unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        """One JSON:API page -> rows (node + its media->file pdf), as crawl() resolves them."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, dict) or not isinstance(data.get("data"), list):
+            raise PermanentFailure("listing_parse_error:expected_jsonapi_data")
+        file_map: dict[str, tuple[str, str]] = {}
+        media_to_file: dict[str, str] = {}
+        for inc in data.get("included", []):
+            inc_type = inc.get("type", "")
+            if inc_type == "file--file":
+                fid = inc["id"]
+                uri = inc.get("attributes", {}).get("uri", {})
+                url_path = uri.get("url", "") if isinstance(uri, dict) else ""
+                fname = inc.get("attributes", {}).get("filename", "") or ""
+                file_map[fid] = (url_path, fname)
+            elif inc_type == "media--documents":
+                mid = inc["id"]
+                fdoc = (
+                    inc.get("relationships", {})
+                    .get("field_document", {})
+                    .get("data")
+                )
+                if isinstance(fdoc, dict) and fdoc.get("id"):
+                    media_to_file[mid] = fdoc["id"]
+        rows = []
+        for item in data["data"]:
+            attrs = item.get("attributes", {}) or {}
+            nid = attrs.get("drupal_internal__nid")
+            pdf_url = None
+            pdf_name = None
+            media_rel = (
+                item.get("relationships", {})
+                .get("field_media1", {})
+                .get("data")
+            )
+            if isinstance(media_rel, dict):
+                mid = media_rel.get("id")
+                fid = media_to_file.get(mid) if mid else None
+                if fid and fid in file_map:
+                    url_path, pdf_name = file_map[fid]
+                    if url_path:
+                        pdf_url = _SITE_BASE + url_path
+                        if not pdf_name:
+                            pdf_name = url_path.rstrip("/").split("/")[-1]
+            rows.append({
+                "url": f"{_SITE_BASE}/fr/node/{nid}",
+                "uuid": item.get("id", ""),
+                "title": (attrs.get("title") or "").strip(),
+                "created": self._parse_date(attrs.get("created")),
+                "node": item,
+                "pdf_url": pdf_url,
+                "pdf_name": pdf_name,
+            })
+        return rows
+
+    def _enumeration_paper(self, row):
+        """Row -> paper (None = crawl()'s no-title / short-abstract skips)."""
+        item = row["node"]
+        attrs = item.get("attributes", {}) or {}
+        nid = attrs.get("drupal_internal__nid")
+        uuid = item.get("id", "")
+        detail_url = f"{_SITE_BASE}/fr/node/{nid}"
+
+        title = (attrs.get("title") or "").strip()
+        if not title:
+            return None
+
+        solr = attrs.get("field_index_solr") or {}
+        abstract = self._strip_html(
+            (solr.get("processed") if isinstance(solr, dict) else None) or ""
+        )
+        if len(abstract) < 100:
+            fallback = (attrs.get("field_longtext1") or "").strip()
+            if len(fallback) > len(abstract):
+                abstract = fallback
+        if len(abstract) < _MIN_ABSTRACT:
+            return None
+
+        published_date = self._parse_date(attrs.get("created"))
+        changed_date = self._parse_date(attrs.get("changed"))
+        pdf_url = row.get("pdf_url")
+        pdf_name = row.get("pdf_name")
+        category = (attrs.get("field_texte_telechargement") or "").strip() or None
+
+        metadata_dict = {
+            "node_id": str(nid),
+            "uuid": uuid,
+            "changed": changed_date,
+            "field_list6": attrs.get("field_list6"),
+            "moderation_state": attrs.get("moderation_state"),
+        }
+        return {
+            "site_id": self.site_id,
+            "external_id": uuid,
+            "post_number": str(nid),
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "original_filename": pdf_name or None,
+            "category": category,
+            "keywords": None,
+            "publisher": "Bibliothèque nationale de France",
+            "metadata": json.dumps(metadata_dict, ensure_ascii=False),
+        }
