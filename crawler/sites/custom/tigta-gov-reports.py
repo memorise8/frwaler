@@ -222,6 +222,85 @@ class TIGTAReportsCrawler(BaseCrawler):
                 break
         return ('\n\n'.join(kept))[:3000]
 
+    # ------------------------------------------------------------ enumeration
+    # Pure entry points (no I/O); crawl() stays unchanged.
+
+    def _enumeration_items(self, data):
+        """Rows of all-reports.json, with crawl()'s pre-download skips (no link,
+        duplicate PDF URL, no title) applied in the same order."""
+        all_reports = (data or {}).get('reports', []) if isinstance(data, dict) else []
+        rows = []
+        seen_urls = set()
+        for report in all_reports:
+            link = (report.get('link') or '').strip()
+            if not link:
+                continue
+            pdf_url = self.base_url + link if link.startswith('/') else link
+            if pdf_url in seen_urls:
+                continue
+            seen_urls.add(pdf_url)
+
+            title = (report.get('title') or '').strip()
+            if not title:
+                continue
+            date_str = (report.get('date') or '').strip()
+            rows.append({
+                'url': pdf_url,
+                'link': link,
+                'title': title,
+                'report_number': (report.get('report_number') or '').strip(),
+                'report_type': (report.get('report_type') or '').strip(),
+                'date_str': date_str,
+                'published_date': _parse_date(date_str),
+            })
+        return rows
+
+    def _enumeration_paper(self, pdf_text, item):
+        """crawl()'s PDF text -> paper conversion (None = skipped). ``pdf_text`` is the
+        framework's pdftotext output of the first 3 pages (None when the PDF is <= 5000 bytes)."""
+        link = item['link']
+        pdf_url = item['url']
+        title = item['title']
+        report_number = item['report_number']
+        report_type = item['report_type']
+        date_str = item['date_str']
+        pub_date = _parse_date(date_str)
+
+        if report_number:
+            external_id = report_number
+            post_number = report_number
+        else:
+            stem = os.path.splitext(os.path.basename(link))[0]
+            external_id = stem
+            post_number = None
+
+        original_filename = os.path.basename(link)
+
+        abstract = self._extract_abstract(pdf_text or "")
+        if len(abstract) < 50:
+            return None
+
+        return {
+            'site_id': self.site_id,
+            'external_id': external_id,
+            'post_number': post_number,
+            'title': title,
+            'abstract': abstract,
+            'published_date': pub_date,
+            'posted_date': pub_date,
+            'url': pdf_url,
+            'pdf_url': pdf_url,
+            'original_filename': original_filename,
+            'category': report_type,
+            'publisher': 'Treasury Inspector General for Tax Administration',
+            'keywords': '',
+            'metadata': json.dumps({
+                'report_number': report_number,
+                'report_type': report_type,
+                'posted_date': date_str,
+            }, ensure_ascii=False),
+        }
+
     # ------------------------------------------------------------------ crawl
 
     def crawl(self, limit=None):
