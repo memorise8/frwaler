@@ -300,3 +300,146 @@ class PpsGoKrKorCrawler(BaseCrawler):
 
         print(f"[pps-go-kr-kor] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (S-open-g5): pure parsing, crawl() unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, raw):
+        """List page bytes (decoded like crawl()) -> rows with the row fields crawl() reads."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(raw, (bytes, bytearray)):
+            raise PermanentFailure("listing_parse_error:expected_bytes")
+        soup = _make_soup(bytes(raw))
+        if soup is None or soup.select_one("table.board_list_table") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_table")
+        items = []
+        for row in soup.select("table.board_list_table tbody tr"):
+            num_td = row.find("td", class_="listNum")
+            post_number = num_td.get_text(strip=True) if num_td else None
+            title_a = row.find("a", onclick=re.compile(r"goView"))
+            if not title_a:
+                continue
+            onclick = title_a.get("onclick", "")
+            m = re.search(r"goView\('([^']+)'", onclick)
+            if not m:
+                continue
+            bbs_sn = m.group(1)
+            listed_date = None
+            for td in row.find_all("td", class_="normal"):
+                txt = td.get_text(strip=True)
+                md = re.search(r"(\d{4}-\d{2}-\d{2})", txt)
+                if md:
+                    listed_date = md.group(1)
+                    break
+            items.append({
+                "bbs_sn": bbs_sn,
+                "post_number": post_number,
+                "detail_url": f"{_VIEW_URL}?key={_KEY}&bbsSn={bbs_sn}",
+                "listed_date": listed_date,
+                "list_title": title_a.get_text(strip=True),
+            })
+        return items
+
+    def _enumeration_paper(self, raw, item):
+        """Detail page bytes + list row -> paper (None = crawl()'s short-abstract skip)."""
+        bbs_sn = item["bbs_sn"]
+        post_number = item["post_number"]
+        detail_url = item["detail_url"]
+        listed_date = item["listed_date"]
+        detail_soup = _make_soup(bytes(raw))
+        if detail_soup is None:
+            return None
+
+        title_el = detail_soup.find("strong", class_="title")
+        title = title_el.get_text(strip=True) if title_el else ""
+        if not title:
+            title = item["list_title"]
+
+        author = ""
+        pub_date = ""
+        department = ""
+        phone = ""
+        title_sp = detail_soup.find("div", class_="title_sp")
+        if title_sp:
+            for span in title_sp.find_all("span"):
+                txt = span.get_text(strip=True)
+                if "작성자" in txt:
+                    author = re.sub(r"작성자\s*:\s*", "", txt).strip()
+                elif "등록일" in txt:
+                    md = re.search(r"(\d{4}-\d{2}-\d{2})", txt)
+                    if md:
+                        pub_date = md.group(1)
+                elif "담당부서" in txt:
+                    department = re.sub(r"담당부서\s*:\s*", "", txt).strip()
+                elif "전화번호" in txt:
+                    phone = re.sub(r"전화번호\s*:\s*", "", txt).strip()
+
+        if not pub_date and listed_date:
+            pub_date = listed_date
+
+        body_text = ""
+        content_div = detail_soup.find("div", id="brdContent")
+        if content_div:
+            body_text = content_div.get_text(separator=" ", strip=True)
+            body_text = re.sub(r"\s+", " ", body_text).strip()
+
+        parts = []
+        if title:
+            parts.append(title)
+        if author:
+            parts.append(f"작성자: {author}")
+        if department:
+            parts.append(f"담당부서: {department}")
+        if pub_date:
+            parts.append(f"등록일: {pub_date}")
+        if phone:
+            parts.append(f"전화번호: {phone}")
+        if body_text:
+            parts.append(body_text)
+        abstract = "\n".join(parts)
+        if len(abstract) < 50:
+            return None
+
+        pdf_url = None
+        original_filename = None
+        for a_tag in detail_soup.find_all("a", href=re.compile(r"/common/fileDown")):
+            href = a_tag.get("href", "")
+            href_clean = re.sub(r";jsessionid=[^?&]*", "", href)
+            if not pdf_url and href_clean:
+                pdf_url = (f"{_BASE_URL}{href_clean}"
+                           if href_clean.startswith("/") else href_clean)
+                fn_text = a_tag.get_text(strip=True)
+                if not fn_text:
+                    img = a_tag.find("img")
+                    if img:
+                        fn_text = img.get("alt", "")
+                if fn_text:
+                    fn_text = re.sub(r"\(pdf\)\s*$", "", fn_text, flags=re.I).strip()
+                    if not fn_text.lower().endswith(".pdf"):
+                        fn_text += ".pdf"
+                    original_filename = fn_text
+
+        return {
+            "site_id": self.site_id,
+            "external_id": bbs_sn,
+            "title": title,
+            "abstract": abstract,
+            "authors": author,
+            "department": department,
+            "published_date": pub_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "doi": None,
+            "category": "통계자료",
+            "keywords": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps({
+                "bbsSn": bbs_sn,
+                "post_number": post_number,
+                "listDate": listed_date,
+                "originalFilename": original_filename,
+                "phone": phone,
+                "key": _KEY,
+            }, ensure_ascii=False),
+        }

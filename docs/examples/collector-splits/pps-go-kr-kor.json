@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "sites": {
+    "pps-go-kr-kor": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.pps.go.kr",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": ["raw"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["raw", "item"]
+      },
+      "listing": {
+        "url": "https://www.pps.go.kr/kor/bbs/list.do?key=00664",
+        "method": "POST",
+        "idempotent": true,
+        "body_type": "form",
+        "params": {"key": "00664", "bbsSn": "", "orderBy": "bbsOrdr desc"},
+        "page_param": "pageIndex",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "bbs_sn",
+          "url_field": "detail_url",
+          "date_field": "listed_date",
+          "title_field": "list_title",
+          "listing_marker": "table.board_list_table"
+        }
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}
