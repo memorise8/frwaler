@@ -289,6 +289,25 @@ class CDHoweResearchInsightsCrawler(BaseCrawler):
         }
 
     # ------------------------------------------------------------------
+    # Pure enumeration entry points (no I/O); crawl() stays unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Publication links of one listing page, as crawl() extracts them."""
+        return [{"url": u} for u in self._extract_pub_urls(html or "")]
+
+    def _enumeration_detail(self, html, item):
+        """crawl()'s detail parse + skip rule (None = not saved)."""
+        if not html:
+            return None
+        paper = self._parse_detail(item["url"], html)
+        if paper is None:
+            return None
+        if len(paper.get("abstract", "")) < _ABSTRACT_MIN:
+            return None
+        return paper
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
