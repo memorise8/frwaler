@@ -1,0 +1,36 @@
+{
+  "version": 1,
+  "sites": {
+    "bnf-fr-fr": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.bnf.fr",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_items",
+        "list_args": ["json"],
+        "paper_method": "_enumeration_paper",
+        "paper_args": ["item"]
+      },
+      "listing": {
+        "url": "https://www.bnf.fr/fr/jsonapi/node/espace_presse",
+        "params": {"page[limit]": 50, "include": "field_media1,field_media1.field_document"},
+        "page_param": "page[offset]",
+        "start_page": 0,
+        "page_mode": "offset",
+        "page_size": 50,
+        "parser": {
+          "type": "adapter",
+          "key_field": "uuid",
+          "url_field": "url",
+          "date_field": "created",
+          "title_field": "title"
+        }
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}
