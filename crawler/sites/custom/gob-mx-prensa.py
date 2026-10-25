@@ -42,6 +42,12 @@ _UA = (
 )
 
 
+_ES_MONTHS = {
+    "enero": 1, "febrero": 2, "marzo": 3, "abril": 4, "mayo": 5, "junio": 6, "julio": 7,
+    "agosto": 8, "septiembre": 9, "setiembre": 9, "octubre": 10, "noviembre": 11, "diciembre": 12,
+}
+
+
 class GobMxPrensaCrawler(BaseCrawler):
     """Base crawler; per-agency subclasses only set ``site_id`` + ``AGENCY``."""
 
@@ -226,6 +232,11 @@ class GobMxPrensaCrawler(BaseCrawler):
         html = self._get(url, context=f"detail {path}")
         if not html:
             return None
+        return self._paper_from_detail_html(html, path)
+
+    def _paper_from_detail_html(self, html, path):
+        """Pure: build the paper from a fetched detail page (``None`` = skipped)."""
+        url = self._detail_url(path)
         soup = BeautifulSoup(html, "html.parser")
 
         title = (
@@ -269,6 +280,37 @@ class GobMxPrensaCrawler(BaseCrawler):
             "metadata": json.dumps(metadata, ensure_ascii=False),
         }
 
+    # ------------------------------------------------------------------
+    # Enumeration split (pure; no network). The framework Fetcher does the
+    # requests and never solves the Akamai challenge: a challenge page stops
+    # the run as AccessBlocked.
+    # ------------------------------------------------------------------
+
+    ARCHIVE_TITLE_MARKER = "Archivo"
+
+    def _enumeration_items(self, html):
+        """List rows of one archive page, same extraction as ``crawl()``."""
+        from crawler.enumeration.http import PermanentFailure
+
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = BeautifulSoup(html, "html.parser")
+        title = self._text(soup.find("title"))
+        if self.ARCHIVE_TITLE_MARKER not in title:
+            raise PermanentFailure("listing_parse_error:not_archive_page")
+        rows = []
+        for path in self._article_paths(html):
+            rows.append({
+                "path": path,
+                "external_id": path.rstrip("/").rsplit("/", 1)[-1],
+                "url": self._detail_url(path),
+            })
+        return rows
+
+    def _enumeration_detail(self, html, item):
+        """Paper from the detail page; ``None`` when ``crawl()`` would skip it."""
+        return self._paper_from_detail_html(html, item["path"])
+
     def _article_body(self, soup):
         node = (
             soup.find("article")
@@ -289,6 +331,11 @@ class GobMxPrensaCrawler(BaseCrawler):
         m = re.search(r'"datePublished"\s*:\s*"(\d{4}-\d{2}-\d{2})', html)
         if m:
             return m.group(1)
+        # Visible byline under the title: <section class="small"><p>Agency | 24 de octubre de 2026
+        byline = soup.select_one("section.small p")
+        m = re.search(r"(\d{1,2})\s+de\s+([a-z]+)\s+de\s+(\d{4})", self._text(byline).lower())
+        if m and m.group(2) in _ES_MONTHS:
+            return f"{m.group(3)}-{_ES_MONTHS[m.group(2)]:02d}-{int(m.group(1)):02d}"
         return ""
 
     @staticmethod
