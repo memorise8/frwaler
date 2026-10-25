@@ -113,7 +113,10 @@ class KBSeOmOssCrawler(BaseCrawler):
         html = self._curl_get(url)
         if not html:
             return {}
+        return self._detail_from_html(html)
 
+    def _detail_from_html(self, html: str) -> dict:
+        """Pure parse of a detail page (shared by _extract_detail and the enumeration split)."""
         if _HAVE_BS4:
             soup = self._make_soup(html)
             if not soup:
@@ -175,6 +178,82 @@ class KBSeOmOssCrawler(BaseCrawler):
             "pdf_url": pdf_url,
             "original_filename": original_filename,
             "published_date": pub_date,
+        }
+
+    # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged; same parsing, no network)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """List rows from one list page, same source as crawl(): the embedded
+        registerInitialState JSON. Rows without ``uri`` are dropped like crawl()."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        if '"config":{"num":' not in html:
+            raise PermanentFailure("listing_parse_error:missing_initial_state")
+        rows = []
+        for item in self._parse_list_page(html):
+            if not isinstance(item, dict):
+                continue
+            uri = item.get("uri", "")
+            if not uri:
+                continue
+            date = item.get("date") or {}
+            rows.append({
+                "url": self.base_url + uri,
+                "external_id": item.get("nodeId") or item.get("id") or "",
+                "title": (item.get("title") or "").strip(),
+                "desc": (item.get("desc") or "").strip(),
+                "date_iso": date.get("iso", ""),
+                "millis": date.get("millis"),
+                "keywords": item.get("keywords") or [],
+                "pinned": item.get("pinned", False),
+                "image_uri": (item.get("image") or {}).get("uri", ""),
+            })
+        return rows
+
+    def _enumeration_detail(self, html, item):
+        return self._detail_from_html(html) if html else {}
+
+    def _enumeration_paper(self, item, detail):
+        detail = detail or {}
+        title = item.get("title") or ""
+        desc = item.get("desc") or ""
+        date_iso = item.get("date_iso") or ""
+        millis = item.get("millis")
+        node_id = item.get("external_id") or ""
+        abstract = detail.get("abstract") or ""
+        if len(abstract) < 50:
+            abstract = desc
+        if len(abstract) < 50:
+            return None
+        pub_date = detail.get("published_date") or date_iso
+        return {
+            "site_id": self.site_id,
+            "external_id": node_id,
+            "post_number": str(int(millis)) if millis is not None else node_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": pub_date,
+            "listed_date": date_iso,
+            "url": item["url"],
+            "pdf_url": detail.get("pdf_url"),
+            "original_filename": detail.get("original_filename"),
+            "authors": "",
+            "publisher": "Kungliga biblioteket",
+            "department": None,
+            "journal": None,
+            "keywords": ",".join(str(k) for k in (item.get("keywords") or [])),
+            "category": "Nyheter",
+            "doi": None,
+            "metadata": json.dumps({
+                "posted_date": date_iso,
+                "nodeId": node_id,
+                "millis": millis,
+                "pinned": item.get("pinned", False),
+                "image_uri": item.get("image_uri", ""),
+            }, ensure_ascii=False),
         }
 
     # ------------------------------------------------------------------
