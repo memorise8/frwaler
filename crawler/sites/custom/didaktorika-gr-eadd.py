@@ -320,3 +320,14 @@ class DidaktorikaGrEaddCrawler(BaseCrawler):
             page += 1
 
         return saved
+
+    # Pure enumeration contract (S-open 10-25); crawl() and transport remain unchanged.
+
+    def _enumeration_items(self, html):
+        """List rows of one simple-search page (same handle parsing as crawl())."""
+        return [{"url": f"{BASE_URL}/eadd/handle/10442/{hid}", "handle_id": hid}
+                for hid in _parse_list_page(html)]
+
+    def _enumeration_paper(self, html, item):
+        """Paper from the detail page; None where crawl() skips (abstract < 50 chars)."""
+        return _parse_detail(html, item["handle_id"])
