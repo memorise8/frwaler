@@ -388,3 +388,72 @@ class GyeongnamGoKrBoardCrawler(BaseCrawler):
 
         print(f"[{_SITE_ID}] crawl complete: saved {saved}/{limit_label}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Enumeration split (S-open-g5): pure parsing, crawl() unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """List page -> rows from _parse_list_page(); a page without the board table is an error."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._parse_html(html)
+        if soup is None or soup.select_one("table.basicList") is None:
+            raise PermanentFailure("listing_parse_error:missing_board_table")
+        return self._parse_list_page(html)
+
+    def _enumeration_paper(self, html, item):
+        """Detail page + list row -> paper (None = crawl()'s short-abstract skip)."""
+        url = item["url"]
+        data_sid = item["data_sid"]
+        detail = self._parse_detail(html)
+        abstract = detail.get("abstract") or ""
+        if len(abstract) < _ABSTRACT_MIN_CHARS:
+            return None
+
+        fields = detail.get("fields", {})
+        department = fields.get("제공부서") or item.get("department")
+        category = fields.get("구분")
+        subtitle = fields.get("부제목")
+
+        listed_iso = self._to_iso_date(item.get("listed_date_raw"))
+        published_iso = self._to_iso_date(detail.get("published_raw")) or listed_iso
+
+        attachments = detail.get("attachments") or []
+        pdf_url = attachments[0]["url"] if attachments else None
+        original_filename = attachments[0]["filename"] if attachments else None
+
+        metadata = {
+            "posted_date": item.get("listed_date_raw"),
+            "originalFilename": original_filename,
+            "dataSid": data_sid,
+            "boardId": _BOARD_ID,
+            "menuCd": _MENU_CD,
+            "department": department,
+            "subtitle": subtitle,
+            "manager": fields.get("담당자"),
+            "phone": fields.get("전화번호"),
+            "attachments": attachments,
+        }
+        return {
+            "id": str(uuid.uuid4()),
+            "site_id": _SITE_ID,
+            "external_id": data_sid,
+            "post_number": item.get("post_number"),
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": published_iso,
+            "posted_date": listed_iso,
+            "authors": None,
+            "publisher": "경상남도",
+            "department": department,
+            "journal": None,
+            "url": url,
+            "pdf_url": pdf_url,
+            "keywords": None,
+            "category": category,
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
