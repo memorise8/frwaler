@@ -146,6 +146,9 @@ class CDHoweResearchInsightsCrawler(BaseCrawler):
         for script in soup.find_all("script", type="application/ld+json"):
             try:
                 data = json.loads(script.string or "")
+                # Yoast wraps the schemas in {"@graph": [...]}
+                if isinstance(data, dict) and isinstance(data.get("@graph"), list):
+                    data = data["@graph"]
                 # Some pages wrap multiple schemas in a list
                 if isinstance(data, list):
                     for item in data:

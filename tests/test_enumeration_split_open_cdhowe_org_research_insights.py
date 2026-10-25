@@ -52,6 +52,13 @@ class Split(unittest.TestCase):
         self.assertEqual(('Alpha Brief', '2025-06-30'), (p['title'], p['published_date']))
         self.assertEqual('https://cdhowe.org/wp-content/uploads/2025/06/alpha.pdf', p['pdf_url'])
 
+    def test_yoast_graph_date(self):
+        graph = ('<script type="application/ld+json">{"@context": "https://schema.org", "@graph": ['
+                 '{"@type": "WebPage", "name": "x"}, {"@type": "Article", "headline": "Alpha Brief", '
+                 '"datePublished": "2026-10-23T06:00:20-04:00", "author": {"name": "A. Writer"}}]}</script>')
+        p = self.crawler._enumeration_detail(DETAIL_A.replace(LD, graph), {'url': A})
+        self.assertEqual(('2026-10-23', '12345'), (p['published_date'], p['post_number']))
+
 
 if __name__ == '__main__':
     unittest.main()
