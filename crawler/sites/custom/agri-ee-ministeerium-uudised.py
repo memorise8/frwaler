@@ -172,6 +172,46 @@ class AgriEeMinisteeriumUudisedCrawler(BaseCrawler):
         return saved
 
     # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged; same parsing, no network)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Rows of the Uuringud page: the embedded datatable JSON, as crawl() reads it.
+        Rows without item_url are dropped like crawl()."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(html, str):
+            raise PermanentFailure("listing_parse_error:expected_html")
+        soup = self._make_soup(html, context="enumeration list")
+        if soup is None or not any(
+            (s.get("id") or "").startswith("datatable-")
+            for s in soup.find_all("script", {"type": "application/json"})
+        ):
+            raise PermanentFailure("listing_parse_error:missing_datatable_json")
+        rows = []
+        for record in self._parse_records(soup):
+            item_url = record.get("item_url") or ""
+            if not item_url:
+                continue
+            native_slug = record.get("native_slug") or self._slug_from_url(item_url)
+            rows.append({
+                "url": item_url,
+                "external_id": native_slug or item_url,
+                "title": record.get("title") or "",
+                "listed_date": record.get("listed_date"),
+                "record": record,
+            })
+        return rows
+
+    def _enumeration_paper(self, record):
+        """crawl()'s paper for one row. The per-item HEAD (filename/content-type hints only)
+        is not made: the framework has no HEAD request, so headers are None, which
+        _record_to_paper already handles. Identity (native_slug, START_URL#anchor) is unchanged."""
+        paper = self._record_to_paper(record, None, self.START_URL)
+        if len(paper.get("abstract") or "") < self.MIN_ABSTRACT_CHARS:
+            return None
+        return paper
+
+    # ------------------------------------------------------------------
     # Network helpers
     # ------------------------------------------------------------------
 
