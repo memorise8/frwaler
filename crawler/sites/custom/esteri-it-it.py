@@ -170,6 +170,97 @@ class EsteriItItCrawler(BaseCrawler):
         return []
 
     # ------------------------------------------------------------------
+    # Enumeration split (crawl() unchanged; same rules, no network)
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, data):
+        """Rows of one WP REST page (plain JSON list, as crawl() reads it)."""
+        from crawler.enumeration.http import PermanentFailure
+        if not isinstance(data, list):
+            raise PermanentFailure("listing_parse_error:expected_wp_post_list")
+        rows = []
+        for item in data:
+            if not isinstance(item, dict):
+                continue
+            post_id = item.get("id")
+            rows.append({
+                "url": (item.get("link") or "").strip(),
+                "id": str(post_id) if post_id is not None else "",
+                "date": item.get("date", ""),
+                "record": item,
+            })
+        return rows
+
+    def _enumeration_paper(self, record):
+        """Same paper as crawl() builds for one WP post; None = crawl()'s short-abstract skip."""
+        item = record
+        post_url = (item.get("link") or "").strip()
+        post_id = item.get("id")
+        external_id = str(post_id) if post_id is not None else ""
+
+        title_field = item.get("title") or {}
+        if isinstance(title_field, dict):
+            title = _strip_html(title_field.get("rendered", ""))
+        else:
+            title = _strip_html(str(title_field))
+
+        raw_date = item.get("date", "")
+        published_date = _parse_wp_date(raw_date)
+
+        content_field = item.get("content") or {}
+        content_html = (
+            content_field.get("rendered", "")
+            if isinstance(content_field, dict)
+            else str(content_field)
+        ) or ""
+        excerpt_field = item.get("excerpt") or {}
+        excerpt_html = (
+            excerpt_field.get("rendered", "")
+            if isinstance(excerpt_field, dict)
+            else str(excerpt_field)
+        ) or ""
+        content_text = _strip_html(content_html)
+        excerpt_text = _strip_html(excerpt_html)
+        if len(content_text) >= len(excerpt_text):
+            abstract = content_text
+        else:
+            abstract = excerpt_text
+        if not abstract and excerpt_text:
+            abstract = excerpt_text
+        if len(abstract) < 50:
+            return None
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": external_id,
+            "title": title or "(untitled)",
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "url": post_url,
+            "pdf_url": None,
+            "authors": "",
+            "publisher": (
+                "Ministero degli Affari Esteri e della "
+                "Cooperazione Internazionale"
+            ),
+            "department": "",
+            "journal": "",
+            "keywords": "",
+            "category": "Comunicati",
+            "doi": "",
+            "original_filename": None,
+            "metadata": json.dumps(
+                {
+                    "post_id": post_id,
+                    "posted_date": raw_date,
+                },
+                ensure_ascii=False,
+            ),
+        }
+
+    # ------------------------------------------------------------------
     # Main crawl
     # ------------------------------------------------------------------
 
