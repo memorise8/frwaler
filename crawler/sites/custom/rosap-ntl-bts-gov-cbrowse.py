@@ -149,7 +149,11 @@ class RosapNtlBtsGovCbrowseCrawler(BaseCrawler):
         html = self._curl(url, timeout=45)
         if not html:
             return None
+        return self._paper_from_detail_html(html, item_id)
 
+    def _paper_from_detail_html(self, html, item_id):
+        """Pure part of _fetch_detail: detail page HTML -> paper dict (or None)."""
+        url = f"{self.base_url}/view/dot/{item_id}"
         soup = self._parse_html(html)
         if soup is None:
             return None
@@ -338,3 +342,19 @@ class RosapNtlBtsGovCbrowseCrawler(BaseCrawler):
 
         print(f"[{self.site_id}] Done. Total saved: {saved}")
         return saved
+
+    # Pure enumeration contract (S-open 10-25); crawl() and transport remain unchanged.
+
+    def _enumeration_items(self, html):
+        """List rows of one cbrowse page (same ID parsing as crawl())."""
+        return [{"url": f"{self.base_url}/view/dot/{item_id}", "item_id": item_id}
+                for item_id in self._extract_browse_items(html)]
+
+    def _enumeration_paper(self, html, item):
+        """Paper from the detail page; None where crawl() skips (abstract < 50 chars)."""
+        paper = self._paper_from_detail_html(html, item["item_id"])
+        if paper is None:
+            raise ValueError("detail_unparsable")
+        if len(paper.get("abstract") or "") < 50:
+            return None
+        return paper
