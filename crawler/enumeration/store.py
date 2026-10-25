@@ -101,14 +101,16 @@ class Store:
         """Begin a run. A changed plan starts a new segment generation; it never blocks.
 
         ``limits`` (the plan's page caps, kept out of plan_fp so a cap change does not restart every
-        site): a run that stopped at the page cap resumes from its capped cursor only under the same
-        caps; with other (or unrecorded) caps the listing is read again from the start, so a raised
-        cap reaches the pages the old cap cut off. Saved items are skipped through the item ledger."""
+        site): a segment whose cursor fixed its last page at the cap (end_kind "page_cap") resumes that
+        cursor only under the same caps; with other (or unrecorded) caps the listing is read again from
+        the start, so a raised cap reaches the pages the old cap cut off -- whatever stopped the last
+        run. (Forward pagers check the cap against the live cursor and need no reopen.) Saved items
+        are skipped through the item ledger."""
         current = self.site(site_id)
         if current and current["plan_fp"] == plan_fp:
             state = current["state"]
-            reopen = (limits is not None and current["stop_reason"] == "page_cap_reached"
-                      and state.get("limits") != limits)
+            reopen = (limits is not None and state.get("limits") != limits
+                      and any((s["cursor"] or {}).get("end_kind") == "page_cap" for s in self.segments(site_id, plan_fp)))
             if reopen:
                 self.event(site_id, "page_cap_reopened", {"from": state.get("limits"), "to": limits})
             if reopen or current["status"] in ("complete", "complete_with_mismatch", "complete_unverified",

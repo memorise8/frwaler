@@ -1,6 +1,7 @@
 """SiteRunner: drives one strategy, saves page by page, ledgers failures."""
 from __future__ import annotations
 
+import contextlib
 import sqlite3
 import time
 from dataclasses import dataclass, field
@@ -11,7 +12,7 @@ from .adapters import (AdapterConfigError, AdapterUngatedNetwork, IdentityCollis
                        IdentityReview, IdentityRuleConfig)
 from .http import (AccessBlocked, BudgetExhausted, EnumerationStop, LoginReview, PermanentFailure, PrivateDestination,
                    RateLimited, ROBOTS_RETRY_S, RobotsDisallowed, RobotsUnavailable, RunCancelled,
-                   TransientFailure)
+                   TransientFailure, site_host_keys)
 from .parsing import Item, ListingParser
 from .strategies import STRATEGIES, StrategyStop, today_from
 from .urls import host_of, normalize_key_url, url_identity
@@ -99,6 +100,7 @@ class SiteRunner:
         self.warnings = []
         self._login_details = 0
         self._robots_details = 0
+        self._cross_host_details = 0
         self._identity_reviews = 0
         self.stats = {"batches": 0, "listed": 0, "skipped_known": 0, "saved_new": 0, "saved_existing": 0,
                       "existing_document": 0, "identity_collisions": 0, "listing_identity_conflicts": 0,
@@ -167,11 +169,8 @@ class SiteRunner:
         item.segment = self.segment_info(segment)  # ext:multi_listing ("segment" argument)
         try:
             # A detail URL that redirects to another, unusable host fails alone (cross_host_redirect).
-            self.fetcher.foreign_redirect_item = True
-            try:
+            with self.detail_redirects():
                 paper = self.adapter.materialize(item, self.fetcher)
-            finally:
-                self.fetcher.foreign_redirect_item = False
         except RobotsDisallowed as exc:
             # One detail URL the site's robots.txt excludes: skip that item, keep the site going.
             # Consecutive exclusions mean robots.txt covers the detail pages: stop the site.
@@ -185,6 +184,7 @@ class SiteRunner:
         except PermanentFailure as exc:
             st.record_item(site, item.key, "failed_permanent", reason=exc.reason, attempt=True, **common)
             self.stats["failed_permanent"] += 1
+            self.cross_host_failure(exc, item)
             if exc.reason == "login_required_suspect":
                 self._login_details += 1
                 limit = int(self.plan.get("max_consecutive_login_details") or 5)
@@ -194,6 +194,7 @@ class SiteRunner:
         except TransientFailure as exc:
             st.record_item(site, item.key, "failed_transient", reason=f"transient:{exc.reason}", attempt=True, **common)
             self.stats["failed_transient"] += 1
+            self.cross_host_failure(exc, item)
             return
         except AdapterConfigError as exc:
             if not (self.contract and getattr(exc, "data_error", False)):
@@ -230,6 +231,7 @@ class SiteRunner:
         self._rule_skips = 0
         self._login_details = 0
         self._robots_details = 0
+        self._cross_host_details = 0
         try:
             seq_id, created, note = self.adapter.save(paper)
         except EnumerationStop:
@@ -355,7 +357,8 @@ class SiteRunner:
         def compare(expected_seq, item, reference=False):
             nonlocal compared, matched, errors, contract_data_errors
             try:
-                ident = self.adapter.identity(item, self.fetcher)
+                with self.detail_redirects():
+                    ident = self.adapter.identity(item, self.fetcher)
             except AdapterConfigError as exc:
                 if not self.contract:
                     errors += 1  # non-contract sites: a sample error, exactly as before the contract
@@ -492,6 +495,23 @@ class SiteRunner:
         if save:
             self.store.save_state(self.site_id, state)
 
+    @contextlib.contextmanager
+    def detail_redirects(self):
+        """Fetcher.get treats a detail redirect to an unusable host other than the site's as an item failure."""
+        self.fetcher.foreign_redirect_item = site_host_keys(self.plan.base_url, self.plan.listing.get("url"))
+        try:
+            yield
+        finally:
+            self.fetcher.foreign_redirect_item = None
+
+    def cross_host_failure(self, exc, item):
+        """Consecutive detail redirects to unusable other hosts mean the site moved there: stop it."""
+        if not str(exc.reason).startswith("cross_host_redirect:"):
+            return
+        self._cross_host_details += 1
+        if self._cross_host_details >= int(self.plan.raw.get("max_consecutive_cross_host_redirect") or 5):
+            raise AccessBlocked("cross_host_redirect_consecutive", item.url) from None
+
     def review_counts(self):
         saved, failed = self.store.item_counts(self.site_id)
         counts = {
@@ -517,6 +537,11 @@ class SiteRunner:
             counts["skipped_by_rule"] = skipped
         # Detail URLs robots.txt excludes were never collected: a person decides unless the plan
         # explicitly tolerates that share (default: none).
+        # Detail pages that redirected to an unusable other host were never collected either.
+        cross = sum(v for k, v in failed.items() if k.startswith(("failed_permanent:cross_host_redirect:",
+                                                                 "failed_transient:transient:cross_host_redirect:")))
+        if cross:
+            counts["cross_host_redirect"] = cross
         robots = failed.get("failed_permanent:robots_disallowed", 0)
         ratio = float(self.plan.get("max_robots_disallowed_ratio") or 0.0)
         if robots and robots / (saved + sum(failed.values())) > ratio:

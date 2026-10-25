@@ -26,8 +26,7 @@ class PageCapReopenTest(unittest.TestCase):
         second = self.run_plan(max_pages=10)
         self.assertEqual("complete", second["status"], second)
         self.assertEqual(50, len(self.env.docs()))
-        self.assertEqual([{"from": {"max_pages": 2, "legacy_page_cap": None},
-                           "to": {"max_pages": 10, "legacy_page_cap": None}}], self.reopen_events())
+        self.assertEqual([{"from": {"max_pages": 2}, "to": {"max_pages": 10}}], self.reopen_events())
 
     def test_same_cap_resumes_the_cursor(self):
         self.run_plan(max_pages=2)
@@ -39,6 +38,14 @@ class PageCapReopenTest(unittest.TestCase):
         a = self.env.plan(board_plan(max_pages=2)).fingerprint
         b = self.env.plan(board_plan(max_pages=10)).fingerprint
         self.assertEqual(a, b)
+
+    def test_raised_cap_after_a_different_stop_still_reopens(self):
+        # The capped cursor is what matters, not the reason the last run stopped (review H1).
+        self.run_plan(max_pages=2)
+        self.env.store.finish_site("fake-site", "incomplete", "time_budget")
+        second = self.run_plan(max_pages=10)
+        self.assertEqual("complete", second["status"], second)
+        self.assertEqual(50, len(self.env.docs()))
 
     def test_stop_before_limits_were_recorded_reopens_once(self):
         self.run_plan(max_pages=2)

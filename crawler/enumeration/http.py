@@ -548,9 +548,20 @@ class RequestsTransport:
             raise TransportError(type(exc).__name__) from exc
 
 
-def _same_host_key(host):
-    """www.example.org and example.org are one host for the cross-host redirect rule."""
+def _host_key(url):
+    """Host of ``url`` as the gate sees it (IDN as punycode), www. dropped: www.example.org and
+    example.org are one host for the cross-host redirect rule."""
+    try:
+        url = governed_url(url)
+    except PermanentFailure:
+        pass
+    host = host_of(url)
     return host[4:] if host.startswith("www.") else host
+
+
+def site_host_keys(*urls):
+    """The cross-host redirect rule's 'own' hosts for a site (its base and listing URLs)."""
+    return frozenset(_host_key(u) for u in urls if u)
 
 
 class Fetcher:
@@ -589,7 +600,7 @@ class Fetcher:
         self._consecutive_429 = 0
         self.holds = holds
         self.max_redirects = int(max_redirects)
-        self.foreign_redirect_item = False  # see get(); set by the runner around one detail item
+        self.foreign_redirect_item = None  # see get(); the site's hosts, set by the runner around one detail item
         # Destination check before every request/hop; the production transport also
         # pins the connection to the checked address.
         self.resolver = resolver or getattr(transport, "resolve", None)
@@ -931,10 +942,11 @@ class Fetcher:
         Returns a 2xx (or accepted) Response.
 
         ``foreign_redirect_item`` (default: the ``foreign_redirect_item`` attribute, which the runner
-        turns on only while it materializes one detail item): when a redirect leaves the requested host and the
-        new host cannot be used (robots.txt unreachable, held, refusing, rate limiting), only this
-        URL fails (PermanentFailure ``cross_host_redirect:<reason>``) instead of the whole site
-        stopping. The new host's own hold is still recorded; nothing is retried or worked around.
+        sets to the site's own hosts only while it materializes one detail item): when a redirect
+        leads to a host that is neither the site's nor the requested one, and that host cannot be used,
+        only this URL fails instead of the whole site stopping -- TransientFailure
+        ``cross_host_redirect:<reason>`` for robots.txt unreachable / rate limiting (resumable), PermanentFailure
+        for a hold or refusal. The other host's hold is still recorded; nothing is retried or worked around.
 
         Raises PermanentFailure, TransientFailure, AccessBlocked, RateLimited, RobotsUnavailable or
         BudgetExhausted.
@@ -942,10 +954,10 @@ class Fetcher:
         accept_statuses = tuple(s for s in accept_statuses if s not in REFUSAL_STATUSES)
         if foreign_redirect_item is None:
             foreign_redirect_item = self.foreign_redirect_item
-        home = _same_host_key(host_of(url))
+        home = set(foreign_redirect_item or ()) | {_host_key(url)} if foreign_redirect_item else set()
         current = url
         for _hop in range(self.max_redirects + 1):
-            foreign = foreign_redirect_item and _hop > 0 and _same_host_key(host_of(current)) != home
+            foreign = bool(home) and _hop > 0 and _host_key(current) not in home
             blocked_before = self.blocked
             try:
                 resp = self._get_hop(current, accept_statuses)
@@ -953,7 +965,8 @@ class Fetcher:
                 if not foreign or isinstance(exc, RobotsDisallowed):
                     raise
                 self.blocked = blocked_before  # the other host's refusal is not this site's
-                raise PermanentFailure(f"cross_host_redirect:{exc.reason}", current, exc.status) from None
+                kind = TransientFailure if isinstance(exc, (RobotsUnavailable, RateLimited)) else PermanentFailure
+                raise kind(f"cross_host_redirect:{exc.reason}", current, exc.status) from None
             current = resp.url_requested
             if 300 <= resp.status < 400:
                 nxt = urljoin(current, location_of(resp))
