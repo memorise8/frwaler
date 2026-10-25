@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "sites": {
+    "gyeongnam-go-kr-board": {
+      "strategy": "last_page_backward",
+      "base_url": "https://www.gyeongnam.go.kr",
+      "request_interval_s": 1.5,
+      "respect_robots": true,
+      "retries": 1,
+      "adapter": {
+        "type": "crawler",
+        "list_method": "_enumeration_items",
+        "list_args": ["html"],
+        "detail_method": "_enumeration_paper",
+        "detail_args": ["html", "item"]
+      },
+      "listing": {
+        "url": "https://www.gyeongnam.go.kr/board/list.gyeong",
+        "params": {"boardId": "BBS_0000060", "menuCd": "DOM_000000135002001000", "paging": "ok",
+                   "categoryCode1": "A", "searchType": "", "keyword": ""},
+        "page_param": "pageNo",
+        "start_page": 1,
+        "parser": {
+          "type": "adapter",
+          "key_field": "data_sid",
+          "url_field": "url",
+          "title_field": "title",
+          "listing_marker": "table.basicList"
+        }
+      },
+      "last_page": {"overlap_pages": 1}
+    }
+  }
+}
