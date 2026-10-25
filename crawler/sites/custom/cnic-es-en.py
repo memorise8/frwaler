@@ -159,7 +159,10 @@ class CnicEsEnCrawler(BaseCrawler):
         html = self._curl(url)
         if not html:
             return {}
+        return self._parse_detail_html(html)
 
+    def _parse_detail_html(self, html: str) -> dict:
+        """Pure part of _fetch_detail: detail page HTML -> body, node_id, intro, date."""
         soup = _make_soup(html)
         if soup is None:
             return {}
@@ -337,3 +340,73 @@ class CnicEsEnCrawler(BaseCrawler):
 
         print(f"[cnic-es-en] Done. Total saved: {saved}")
         return saved
+
+    # ------------------------------------------------------------------
+    # Pure enumeration contract (S-open 10-25); crawl() and transport unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """List rows of one listing page (same parsing as crawl(); pager link unused)."""
+        items, _next = self._parse_list_page(html)
+        return items
+
+    def _enumeration_paper(self, html, item):
+        """The paper crawl() saves for this row and detail page (same rules);
+        None where crawl() skips (abstract < 50 chars)."""
+        detail = self._parse_detail_html(html) if html else {}
+
+        node_id = detail.get("node_id", "")
+        body = detail.get("body", "")
+        intro = detail.get("intro", "") or item.get("list_intro", "")
+        pub_date = detail.get("pub_date") or item.get("published_date", "")
+        category = item.get("category", "")
+
+        if body and len(body) >= _MIN_ABSTRACT_SAVE:
+            abstract = body
+        else:
+            parts = []
+            if intro:
+                parts.append(intro)
+            parts.append(
+                f"Source: CNIC - Centro Nacional de Investigaciones "
+                f"Cardiovasculares Carlos III, Madrid, Spain."
+            )
+            if category:
+                parts.append(f"Category: {category}.")
+            if pub_date:
+                parts.append(f"Published: {pub_date}.")
+            abstract = " ".join(parts)
+
+        if len(abstract) < _MIN_ABSTRACT_SAVE:
+            return None
+
+        item_url = item["url"]
+        slug = item_url.rstrip("/").rsplit("/", 1)[-1]
+        external_id = node_id if node_id else slug
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": node_id if node_id else None,
+            "title": item["title"],
+            "abstract": abstract,
+            "published_date": pub_date,
+            "posted_date": item.get("published_date", ""),
+            "url": item_url,
+            "authors": None,
+            "publisher": "CNIC - Centro Nacional de Investigaciones Cardiovasculares Carlos III",
+            "department": None,
+            "journal": None,
+            "pdf_url": None,
+            "keywords": category if category else None,
+            "category": category,
+            "doi": None,
+            "original_filename": None,
+            "metadata": json.dumps({
+                "posted_date": item.get("published_date", ""),
+                "originalFilename": None,
+                "node_id": node_id,
+                "category": category,
+                "list_intro": item.get("list_intro", ""),
+            }, ensure_ascii=False),
+        }
