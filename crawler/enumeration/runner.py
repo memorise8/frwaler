@@ -548,8 +548,10 @@ class SiteRunner:
         # explicitly tolerates that share (default: none).
         # Detail pages whose redirect target refused us or is held were never collected either. A
         # temporary failure there (robots.txt unreachable, rate limit) is retried by later runs like
-        # any other transient item failure, so it does not hold the site for review.
-        cross = sum(v for k, v in failed.items() if k.startswith("failed_permanent:cross_host_redirect:"))
+        # any other transient item failure, so it does not hold the site for review -- until its
+        # retries are used up, after which nothing would read it again without a person.
+        cross = sum(v for k, v in failed.items() if k.startswith((
+            "failed_permanent:cross_host_redirect:", "failed_retries_exhausted:transient:cross_host_redirect:")))
         if cross:
             counts["cross_host_redirect"] = cross
         robots = failed.get("failed_permanent:robots_disallowed", 0)

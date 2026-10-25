@@ -118,6 +118,25 @@ class RunnerCrossHostTest(unittest.TestCase):
         # Temporary: retried by a later run like any transient item, so no review hold (nidcd r0919).
         self.assertEqual("complete", result["status"], result)
 
+    def test_exhausted_temporary_failure_needs_review(self):
+        # Retries used up (e.g. one long outage during a back-to-back chain): nothing would read the
+        # item again without a person, so it is shown for review.
+        board = FakeBoard(5)
+
+        def handle(method, url, data):
+            parts = urlsplit(url)
+            if parts.hostname == "other.test":
+                return TransportError("ConnectTimeout")
+            if parts.path == "/robots.txt":
+                return NO_RULES
+            if parts.path == "/view" and parts.query == "id=3":
+                return moved("https://other.test/item/3")
+            return board(url)
+        self.assertEqual("complete", self.env.run(board_plan(), None, transport=RecordingTransport(handle))["status"])
+        self.env.store.exhaust_items("fake-site", 1)
+        again = self.env.run(board_plan(), None, transport=RecordingTransport(handle), refresh=True)
+        self.assertEqual("complete_with_review", again["status"], again)
+
     def test_refused_redirect_target_needs_review(self):
         board = FakeBoard(5)
 
