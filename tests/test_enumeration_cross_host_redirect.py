@@ -115,7 +115,24 @@ class RunnerCrossHostTest(unittest.TestCase):
         self.assertEqual(4, saved)
         (key,) = failed
         self.assertTrue(key.startswith("failed_transient:transient:cross_host_redirect:robots_unavailable"), failed)
-        self.assertEqual("complete_with_review", result["status"], result)  # a person sees the missed item
+        # Temporary: retried by a later run like any transient item, so no review hold (nidcd r0919).
+        self.assertEqual("complete", result["status"], result)
+
+    def test_refused_redirect_target_needs_review(self):
+        board = FakeBoard(5)
+
+        def handle(method, url, data):
+            parts = urlsplit(url)
+            if parts.hostname == "other.test":
+                return NO_RULES if parts.path == "/robots.txt" else Response(403, {}, b"no")
+            if parts.path == "/robots.txt":
+                return NO_RULES
+            if parts.path == "/view" and parts.query == "id=3":
+                return moved("https://other.test/item/3")
+            return board(url)
+        result = self.env.run(board_plan(), None, transport=RecordingTransport(handle))
+        self.assertEqual("complete_with_review", result["status"], result)
+        self.assertEqual(4, len(self.env.docs()))
 
     def test_consecutive_cross_host_failures_stop_the_site(self):
         # The site moved to a host that refuses us: every detail fails -> stop, not "complete" (review H2).

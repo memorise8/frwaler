@@ -546,9 +546,10 @@ class SiteRunner:
             counts["skipped_by_rule"] = skipped
         # Detail URLs robots.txt excludes were never collected: a person decides unless the plan
         # explicitly tolerates that share (default: none).
-        # Detail pages that redirected to an unusable other host were never collected either.
-        cross = sum(v for k, v in failed.items() if k.startswith(("failed_permanent:cross_host_redirect:",
-                                                                 "failed_transient:transient:cross_host_redirect:")))
+        # Detail pages whose redirect target refused us or is held were never collected either. A
+        # temporary failure there (robots.txt unreachable, rate limit) is retried by later runs like
+        # any other transient item failure, so it does not hold the site for review.
+        cross = sum(v for k, v in failed.items() if k.startswith("failed_permanent:cross_host_redirect:"))
         if cross:
             counts["cross_host_redirect"] = cross
         robots = failed.get("failed_permanent:robots_disallowed", 0)
