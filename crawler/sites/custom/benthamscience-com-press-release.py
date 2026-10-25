@@ -356,6 +356,126 @@ class BenthamScienceComPressReleaseCrawler(BaseCrawler):
             "metadata": json.dumps(metadata, ensure_ascii=False),
         }
 
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (no I/O); crawl() stays unchanged.
+    # Bodies are verbatim copies of _fetch_list_page / _fetch_detail after the fetch.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html: str, url: str) -> list[dict[str, Any]]:
+        """Listing rows of one page (``url`` = final URL, as curl's url_effective)."""
+        final_url, raw = url, html
+        if not raw:
+            return []
+
+        soup = _make_soup(raw)
+        if soup is None:
+            return []
+
+        items = []
+        seen_on_page = set()
+        anchors = soup.select('news-list a[href*="/press-release-detail/"]')
+        if not anchors:
+            anchors = soup.select('a[href*="/press-release-detail/"]')
+
+        for anchor in anchors:
+            href = anchor.get("href") or ""
+            detail_url = urljoin(final_url or _BASE_URL, href)
+            if detail_url in seen_on_page:
+                continue
+            seen_on_page.add(detail_url)
+
+            title_el = anchor.find("news-title")
+            date_el = anchor.find("publication-date")
+            raw_date = _text(date_el)
+            title = _text(title_el) or _clean_text(anchor.get_text(" ", strip=True).replace(raw_date, ""))
+            native_id = _native_id_from_url(detail_url)
+
+            items.append(
+                {
+                    "url": detail_url,
+                    "title": title,
+                    "listed_date_raw": raw_date,
+                    "listed_date": _parse_date(raw_date),
+                    "external_id": native_id,
+                    "post_number": native_id,
+                }
+            )
+        return items
+
+    def _enumeration_detail(self, html: str, item: dict[str, Any], url: str) -> dict[str, Any] | None:
+        """Detail page -> paper with crawl()'s skip rules (None = not saved)."""
+        detail_url = item["url"]
+        final_url, raw = url, html
+        if not raw:
+            return None
+
+        soup = _make_soup(raw)
+        if soup is None:
+            return None
+
+        title = _text(soup.find("article-title")) or item.get("title") or ""
+        raw_detail_date = self._extract_detail_date_raw(soup)
+        published_date = _parse_date(raw_detail_date) or item.get("listed_date")
+
+        body_el = soup.select_one(".rt .card-body")
+        abstract = _text(body_el)
+        if not abstract:
+            card = soup.select_one(".rt .card")
+            abstract = _text(card)
+
+        pdf_url = self._extract_pdf_url(body_el)
+        original_filename = _filename_from_url(pdf_url)
+        journals = self._extract_journals(body_el)
+
+        external_id = item.get("external_id") or _native_id_from_url(final_url) or _native_id_from_url(detail_url)
+        post_number = item.get("post_number") or external_id
+        metadata = {
+            "posted_date": item.get("listed_date_raw") or raw_detail_date or item.get("listed_date"),
+            "originalFilename": original_filename,
+            "journal_raw": journals,
+            "series": None,
+            "volume": None,
+            "issue": None,
+            "press_release_id": external_id,
+            "node_id": external_id,
+            "post_number": post_number,
+            "list_title": item.get("title"),
+            "list_date_raw": item.get("listed_date_raw"),
+            "detail_date_raw": raw_detail_date,
+            "listed_date": item.get("listed_date"),
+            "published_date": published_date,
+            "detail_url": final_url or detail_url,
+            "body_length": len(abstract),
+        }
+
+        paper = {
+            "id": f"{self.site_id}-{external_id or post_number or abs(hash(detail_url))}",
+            "site_id": self.site_id,
+            "external_id": str(external_id) if external_id is not None else detail_url,
+            "post_number": str(post_number) if post_number is not None else None,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": item.get("listed_date") or published_date,
+            "posted_date": item.get("listed_date") or published_date,
+            "authors": None,
+            "publisher": "Bentham Science Publishers",
+            "department": None,
+            "journal": "; ".join(journals) if journals else None,
+            "url": final_url or detail_url,
+            "pdf_url": pdf_url,
+            "keywords": None,
+            "category": "Press Release",
+            "doi": None,
+            "original_filename": original_filename,
+            "metadata": json.dumps(metadata, ensure_ascii=False),
+        }
+        if len(paper.get("abstract") or "") < 50:
+            return None
+        if not paper.get("title"):
+            return None
+        return paper
+
     def _near_wall_limit(self, start_time: float) -> bool:
         elapsed = time.time() - start_time
         return elapsed >= (_MAX_WALL_SECONDS - _WALL_STOP_GRACE_SECONDS)
