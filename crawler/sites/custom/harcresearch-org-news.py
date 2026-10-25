@@ -176,6 +176,61 @@ class HarcResearchOrgNewsCrawler(BaseCrawler):
     site_name = "Custom: harcresearch-org-news"
     base_url = "https://harcresearch.org"
 
+    # ------------------------------------------------------------------
+    # Pure enumeration entry points (no I/O); crawl() stays unchanged.
+    # ------------------------------------------------------------------
+
+    def _enumeration_items(self, html):
+        """Listing cards via the same parser crawl() uses."""
+        return _parse_listing(html or "")
+
+    def _enumeration_detail(self, html, item):
+        """crawl()'s detail -> paper conversion, verbatim (None = skipped)."""
+        detail_html = html
+        if not detail_html:
+            return None
+        url = item['url']
+
+        abstract = _extract_abstract(detail_html)
+        if not abstract or len(abstract) < 100:
+            return None
+
+        slug = _slug_from_url(url)
+        published_date = _parse_date(item['date_raw'])
+        pdf_url = _find_pdf_url(detail_html)
+
+        pdf_filename = None
+        if pdf_url:
+            tail = pdf_url.rstrip('/').split('/')[-1].split('?')[0]
+            if tail and '.' in tail:
+                pdf_filename = tail
+
+        return {
+            'site_id': self.site_id,
+            'external_id': slug,
+            'post_number': slug,
+            'title': item['title'],
+            'abstract': abstract,
+            'published_date': published_date,
+            'listed_date': published_date,
+            'url': url,
+            'pdf_url': pdf_url,
+            'original_filename': pdf_filename,
+            'publisher': _PUBLISHER,
+            'category': item['category'],
+            'keywords': None,
+            'authors': None,
+            'doi': None,
+            'metadata': json.dumps(
+                {
+                    'posted_date': item['date_raw'],
+                    'category': item['category'],
+                    'slug': slug,
+                },
+                ensure_ascii=False,
+            ),
+        }
+
     def crawl(self, limit=None):
         start_time = time.time()
         saved = 0
