@@ -147,6 +147,108 @@ class NHCPublicationsCrawler(BaseCrawler):
     site_name = "Custom: en-nhc-gov-cn-publicationshtml"
     base_url = "https://en.nhc.gov.cn"
 
+    # ------------------------------------------------------------------ #
+    # Pure enumeration entry points (no I/O); crawl() stays unchanged.    #
+    # ------------------------------------------------------------------ #
+
+    def _enumeration_items(self, html):
+        """List page links, verbatim from crawl() (div.list, then regex fallback)."""
+        raw = html or ""
+        seen_urls: set[str] = set()
+        items: list[dict] = []
+        soup = _make_soup(raw)
+        if soup:
+            list_div = soup.find("div", class_="list")
+            if list_div:
+                for a in list_div.find_all("a", href=True):
+                    href = a["href"].strip()
+                    if not href or href.startswith("javascript"):
+                        continue
+                    full_url = (href if href.startswith("http")
+                                else urljoin(_BASE_URL + "/", href))
+                    title = a.get_text(strip=True)
+                    if full_url not in seen_urls and title:
+                        seen_urls.add(full_url)
+                        items.append({"url": full_url, "title": title})
+
+        if not items:
+            for m in re.finditer(
+                r'<a\s[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>',
+                raw, re.DOTALL | re.IGNORECASE
+            ):
+                href = m.group(1).strip()
+                text = _strip_tags(m.group(2))
+                if not text or not href or href.startswith("javascript"):
+                    continue
+                if re.search(r"\d{4}-\d{2}/\d{2}/c_\d+\.htm", href):
+                    full_url = (href if href.startswith("http")
+                                else urljoin(_BASE_URL + "/", href))
+                    if full_url not in seen_urls:
+                        seen_urls.add(full_url)
+                        items.append({"url": full_url, "title": text})
+        return items
+
+    def _enumeration_detail(self, html, item):
+        """crawl()'s detail -> paper (None = skipped)."""
+        detail_html = html
+        if not detail_html:
+            return None
+        detail_url = item["url"]
+        list_title = item["title"]
+
+        meta = _parse_enpproperty(detail_html)
+        article_id = meta.get("articleid", "")
+        raw_date = meta.get("date", "")
+        title = (meta.get("title") or list_title or "").strip()
+        keyword = (meta.get("keyword") or "").strip()
+        node_id = meta.get("nodeid", "")
+
+        published_date = _parse_date(raw_date)
+
+        abstract = _extract_abstract(detail_html)
+        if len(abstract) < 50:
+            return None
+
+        pdf_url = _extract_pdf_url(detail_html, detail_url)
+        original_filename = None
+        if pdf_url:
+            original_filename = (
+                pdf_url.rstrip("/").split("/")[-1].split("?")[0] or None
+            )
+
+        external_id = article_id
+        if not external_id:
+            m2 = re.search(r"c_(\d+)\.htm", detail_url)
+            external_id = m2.group(1) if m2 else detail_url
+
+        return {
+            "site_id": self.site_id,
+            "external_id": external_id,
+            "post_number": external_id,
+            "title": title,
+            "abstract": abstract,
+            "published_date": published_date,
+            "listed_date": published_date,
+            "url": detail_url,
+            "pdf_url": pdf_url,
+            "original_filename": original_filename,
+            "keywords": keyword,
+            "authors": "",
+            "publisher": "National Health Commission of China",
+            "department": "",
+            "journal": "",
+            "category": "Publications",
+            "doi": None,
+            "metadata": json.dumps(
+                {
+                    "posted_date": raw_date,
+                    "node_id": node_id,
+                    "articleid": article_id,
+                },
+                ensure_ascii=False,
+            ),
+        }
+
     def crawl(self, limit=None):
         """Crawl https://en.nhc.gov.cn/publications.html.
 
