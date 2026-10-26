@@ -345,6 +345,14 @@ class ApiCursorTest(unittest.TestCase):
         self.assertEqual([(e["detail"]["since"], e["detail"]["reason"]) for e in events],
                          [("2026-10-14", "rate_limited_cooldown")])
 
+    def test_not_advanced_event_carries_the_final_status(self):
+        api = FakeOpenAlex([work(1, "2026-10-14T01:00:00")])  # complete, but nothing beyond the start day
+        with mock.patch("crawler.enumeration.runner.duplicate_rows", side_effect=[0, 1]):
+            result = self.go(api)
+        self.assertEqual(result["status"], "failed_duplicates")
+        events = self.env.store.events(SITE, "api_cursor_watermark_not_advanced")
+        self.assertEqual([e["detail"]["status"] for e in events], ["failed_duplicates"])
+
     def test_cli_refuses_incremental_options_for_api_cursor(self):
         from crawler.enumeration import run
         args = ["--plan", str(ROOT / "docs" / "examples" / "openalex-doaj-plan.json"), "--site", SITE,
@@ -542,7 +550,9 @@ class RunPilotEnvFileTest(unittest.TestCase):
         fake.chmod(0o755)
         (self.dir / "plan.json").write_text("{}")
         (self.dir / "seed-holds.csv").write_text("host,reason\n")
-        self.secret = self.dir / "openalex.env"
+        keep = tempfile.TemporaryDirectory()  # outside the plan folder and the runs root (both mounted)
+        self.addCleanup(keep.cleanup)
+        self.secret = Path(os.path.realpath(keep.name)) / "openalex.env"
         self.secret.write_text("OPENALEX_API_KEY=" + KEY + "\n")
         self.env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", FAKE_DOCKER_LOG=str(self.dir / "docker.log"),
                         ENUM_PILOT_ROOT=str(self.dir / "runs"), ENUM_PILOT_DATE="20261026-t1")
@@ -574,9 +584,15 @@ class RunPilotEnvFileTest(unittest.TestCase):
             self.assertNotEqual(proc.returncode, 0)
             self.assertIn("ENUM_ENV_FILE", proc.stderr)
         self.secret.chmod(0o600)
-        link = self.dir / "link.env"
+        link = self.secret.parent / "link.env"
         link.symlink_to(self.secret)
-        for path in (link, self.dir / "missing.env", self.dir):
+        inside = []
+        for folder in (self.dir, self.dir / "runs"):  # the plan's folder, ENUM_PILOT_ROOT
+            folder.mkdir(exist_ok=True)
+            inside.append(folder / "openalex.env")
+            inside[-1].write_text("OPENALEX_API_KEY=" + KEY + "\n")
+            inside[-1].chmod(0o600)
+        for path in [link, self.dir / "missing.env", self.dir] + inside:
             proc = self.run_pilot(path)
             self.assertNotEqual(proc.returncode, 0)
             self.assertIn("ENUM_ENV_FILE", proc.stderr)
@@ -602,8 +618,11 @@ class CollectRunnerApiCursorTest(unittest.TestCase):
         plan_file = os.path.join(self.home, SITE + ".json")
         with open(plan_file, "w") as fh:
             json.dump({"sites": {SITE: PLAN["sites"][SITE]}}, fh)
-        self.secrets = os.path.join(self.home, "secrets")
+        keep = tempfile.TemporaryDirectory()  # outside runs_root and the plan folder
+        self.addCleanup(keep.cleanup)
+        self.secrets = os.path.join(os.path.realpath(keep.name), "secrets")
         os.makedirs(self.secrets, mode=0o700)
+        json.dump({"runs_root": os.path.join(self.home, "runs")}, open(os.path.join(self.home, "config.json"), "w"))
         self.env_file = os.path.join(self.secrets, "openalex.env")
         with open(self.env_file, "w") as fh:
             fh.write("OPENALEX_API_KEY=" + KEY + "\n")
@@ -632,6 +651,13 @@ class CollectRunnerApiCursorTest(unittest.TestCase):
         os.chmod(self.secrets, 0o770)
         self.assertEqual(refuse(self.env_file), "env_file_dir_writable_by_others")
         os.chmod(self.secrets, 0o700)
+        for folder in (os.path.join(self.home, "runs", "20261026-s1"), self.home):  # runs_root, the plan's folder
+            os.makedirs(folder, exist_ok=True)
+            inside = os.path.join(folder, "openalex.env")
+            with open(inside, "w") as fh:
+                fh.write("OPENALEX_API_KEY=" + KEY + "\n")
+            os.chmod(inside, 0o600)
+            self.assertEqual(refuse(inside, self.reg[SITE]["plan_file"]), "env_file_inside_mounted_folder")
 
     def exec_env(self, run_id, mode, tag):
         out = os.path.join(self.home, run_id + ".json")

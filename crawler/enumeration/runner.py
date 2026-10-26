@@ -736,7 +736,6 @@ class SiteRunner:
             status, reason = mapped
             if isinstance(exc, _IdentityStop):
                 identity = exc.detail
-        strategy.finished(status, reason)
         rollback = getattr(doc_conn, "rollback", None)
         if rollback and not isinstance(doc_conn, sqlite3.Connection):
             rollback()  # never leave an aborted PostgreSQL transaction behind
@@ -772,6 +771,7 @@ class SiteRunner:
             # Enumeration finished, but items need a person: never a plain "complete".
             status = "complete_with_review"
             reason = ";".join(f"{k}:{v}" for k, v in review.items())
+        strategy.finished(status, reason)  # the final status (after the duplicate/review overrides)
         ctx.state["warnings"] = list(self.warnings)
         self.record_timing(ctx.state, save=False)
         st.finish_site(site, status, reason, ctx.state)

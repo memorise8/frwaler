@@ -224,11 +224,16 @@ def incremental_refusal(e):
     return None
 
 
-def env_file_refusal(p):
+def env_file_refusal(p, plan_file=None):
     """비밀값 파일(ENUM_ENV_FILE)을 쓸 수 없는 까닭(없으면 None). 내용은 읽지 않는다: 절대 경로, 링크 아닌 일반 파일,
-    실행기 사용자 소유, 그룹·다른 사용자 권한 없음(600), 상위 폴더를 그룹·다른 사용자가 쓸 수 없음."""
+    실행기 사용자 소유, 그룹·다른 사용자 권한 없음(600), 상위 폴더를 그룹·다른 사용자가 쓸 수 없음,
+    컨테이너에 마운트되는 곳(runs_root, plan 파일 폴더) 밖."""
     if not isinstance(p, str) or not os.path.isabs(p):
         return "env_file_not_absolute"
+    real = os.path.realpath(p)
+    for root in (config()["runs_root"], os.path.dirname(os.path.realpath(plan_file)) if plan_file else None):
+        if root and os.path.commonpath([real, os.path.realpath(root)]) == os.path.realpath(root):
+            return "env_file_inside_mounted_folder"
     try:
         st, parent = os.lstat(p), os.stat(os.path.dirname(p))
     except OSError:
@@ -554,7 +559,7 @@ def _exec(c, run_id):
         env.pop(k, None)
     if e.get("env_file"):
         # 그 사이트의 비밀값 파일만(실행기 전체 환경으로 넘기지 않는다). 경로만 넘기고 내용은 docker 가 읽는다.
-        why = env_file_refusal(e["env_file"])
+        why = env_file_refusal(e["env_file"], plan)
         if why:
             raise RuntimeError("비밀값 파일 사용 불가: %s" % why)
         env["ENUM_ENV_FILE"] = e["env_file"]
@@ -810,9 +815,10 @@ def ctl(argv):
                 os.remove(dest)
                 sys.exit("plan 검증 실패: " + msg)
         env_file = os.path.expanduser(a.env_file) if a.env_file else None
-        if env_file and env_file_refusal(env_file):
+        if env_file and env_file_refusal(env_file, dest):
+            why = env_file_refusal(env_file, dest)
             os.remove(dest)
-            sys.exit("비밀값 파일 사용 불가: %s" % env_file_refusal(env_file))
+            sys.exit("비밀값 파일 사용 불가: %s" % why)
         unit = a.unit or load_units().get(a.site)
         if not unit:
             os.remove(dest)

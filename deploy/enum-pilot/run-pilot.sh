@@ -85,7 +85,13 @@ cmd_run() {
     (( (8#$(stat -c %a "$ENUM_ENV_FILE") & 8#077) == 0 )) || die "ENUM_ENV_FILE 을 그룹·다른 사용자가 읽거나 쓸 수 있음(chmod 600 필요)"
     [[ "$(stat -c %u "$ENUM_ENV_FILE")" == "$(id -u)" ]] || die "ENUM_ENV_FILE 이 현재 사용자 소유가 아님"
     (( (8#$(stat -c %a "$(dirname "$ENUM_ENV_FILE")") & 8#022) == 0 )) || die "ENUM_ENV_FILE 의 폴더를 그룹·다른 사용자가 쓸 수 있음"
-    envargs=(--env-file "$(cd "$(dirname "$ENUM_ENV_FILE")" && pwd)/$(basename "$ENUM_ENV_FILE")")
+    local envpath real_root
+    envpath="$(cd "$(dirname "$ENUM_ENV_FILE")" && pwd -P)/$(basename "$ENUM_ENV_FILE")"
+    # 컨테이너에 마운트되는 곳(작업 루트, plan 폴더) 안의 파일은 컨테이너 안에서도 보인다.
+    for real_root in "$(realpath -m "$ROOT")" "$(cd "$(dirname "$plan")" && pwd -P)"; do
+      [[ "$envpath" == "$real_root"/* ]] && die "ENUM_ENV_FILE 이 컨테이너에 마운트되는 폴더 안에 있음: 다른 곳으로 옮기세요"
+    done
+    envargs=(--env-file "$envpath")
   fi
 
   safety_check
