@@ -62,7 +62,9 @@ SHARED_META_URL = {"garda-ie-en", "kefm-dk-aftaler", "csic-es-es", "um-dk-om-os"
 #   v2 기존 562건과 겹침·충돌 0, 남은 약 2,400건은 접근 거절로 미수집 기록(S 요청, 사용자 이 창 승인 10-25 "받은 것만 넣고 사유 기록").
 REVIEW_ACCEPTED = {"em-lyon-com-en": "f837027769dae5908f1bb9a3ff521f7682848d31d22bc0ac154da9a57bb7e6b9",
                    "daejeon-go-kr-drh": "ffebd24ebeed6415939ba3697af032ef3db6c48cbffbddbd5802e3f44882f8a7",
-                   "rosap-ntl-bts-gov-cbrowse": "bedfc2a4d33cff995a35d9fa1b1ae8b046a75ba989f33cd0b4352a0250dd323c"}
+                   "rosap-ntl-bts-gov-cbrowse": "bedfc2a4d33cff995a35d9fa1b1ae8b046a75ba989f33cd0b4352a0250dd323c",
+                   # 189 post_conflict: 같은 dataSid, 주소는 startPage 만 다름(10-26 사용자 승인) — 그 189 는 넣지 않음
+                   "gyeongnam-go-kr-board": "ed556ed667dcd918e62382ac20246e38f4d9a959d7b6bdd70dd6404b5a69bc8a"}
 # 구역 세션 판정(dev-flow site-status/*.csv)이 이러면 자동 반영하지 않는다
 HOLD_STATES = {"needs_dev", "blocked_access", "moved", "no_crawler", "skip", "plan_written"}
 # 제품 sites 에 없는 enum 사이트 ID 는 crawler/sites/configs/<id>.json 의 별도 설정형 수집기다(납품 806곳 밖).
