@@ -66,7 +66,7 @@ def _has_documents_table(conn):
     return (row["r"] if hasattr(row, "keys") else row[0]) is not None
 
 
-def ensure_documents_db(conn, site_id, site_name, base_url, *, db_name):
+def ensure_documents_db(conn, site_id, site_name, base_url, *, db_name, sheet=None):
     """S0: make the documents DB usable from empty. The schema is created only in an
     isolated enum_* database; the site row (documents.site_id FK) is upserted the
     way the legacy crawlers do in crawl()."""
@@ -80,7 +80,7 @@ def ensure_documents_db(conn, site_id, site_name, base_url, *, db_name):
         backend.init_db(conn)
     elif isolated:
         backend.init_db(conn)  # idempotent: CREATE IF NOT EXISTS + additive date columns
-    backend.upsert_site(conn, site_id, site_name or site_id, base_url or "")
+    backend.upsert_site(conn, site_id, site_name or site_id, base_url or "", sheet)
 
 
 class SiteLease:
@@ -352,7 +352,8 @@ def main(argv=None):
             cls = CRAWLERS.get(plan.site_id)
             ensure_documents_db(conn, plan.site_id,
                                 getattr(cls, "site_name", None) or plan.raw.get("site_name") or plan.site_id,
-                                getattr(cls, "base_url", None) or plan.base_url, db_name=db_name)
+                                getattr(cls, "base_url", None) or plan.base_url, db_name=db_name,
+                                sheet=getattr(cls, "sheet", None))
             with SiteLease(conn, args.db, plan.site_id):
                 return _leased(plan, conn)
         except RuntimeError as exc:

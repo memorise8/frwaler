@@ -5,11 +5,12 @@ import hashlib
 import json
 import re
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
 from .http import DEFAULT_USER_AGENT
 
-STRATEGY_NAMES = ("last_page_backward", "date_range_split", "oldest_first_sort", "sitemap")
+STRATEGY_NAMES = ("last_page_backward", "date_range_split", "oldest_first_sort", "sitemap", "api_cursor")
 MIN_INTERVAL_S = 1.5
 
 DEFAULTS = {
@@ -84,6 +85,8 @@ class SitePlan:
     @property
     def fingerprint(self):
         contract = {k: self.raw.get(k) for k in _CONTRACT_KEYS}
+        if "api_cursor" in self.raw:
+            contract["api_cursor"] = self.raw["api_cursor"]  # only when present: other plans keep their fingerprint
         adapter = self.raw.get("adapter") or {}
         if "contract_version" in adapter:
             contract["adapter_contract"] = adapter
@@ -206,8 +209,9 @@ def _validate_listing_extensions(site_id, raw, listing):
         raise PlanError(f"{site_id}: first_page_url needs a {{page}} listing url")
     cursor = listing.get("next_cursor")
     if cursor is not None:
-        if strategy not in ("oldest_first_sort", "date_range_split"):
-            raise PlanError(f"{site_id}: next_cursor paging is forward-only (oldest_first_sort, date_range_split)")
+        if strategy not in ("oldest_first_sort", "date_range_split", "api_cursor"):
+            raise PlanError(f"{site_id}: next_cursor paging is forward-only (oldest_first_sort, date_range_split,"
+                            " api_cursor)")
         if not isinstance(cursor, dict) or not _LITERAL.match(str(cursor.get("path") or "")) \
                 or not _LITERAL.match(str(cursor.get("param") or "")):
             raise PlanError(f"{site_id}: next_cursor needs a literal path and param")
@@ -439,6 +443,40 @@ def _validate_discover(site_id, listing, seg):
         raise PlanError(f"{site_id}: segments.min_segments must be a positive integer")
 
 
+def _validate_api_cursor(site_id, raw):
+    """api_cursor: one cursor-paged API query filtered by "updated since" (a ``{since}`` placeholder in
+    exactly one listing parameter), read in ascending update order. ``api_cursor.initial_since`` is the
+    first run's date; later runs start from the watermark kept in the site state."""
+    cfg = raw.get("api_cursor")
+    if raw["strategy"] != "api_cursor":
+        if cfg is not None:
+            raise PlanError(f"{site_id}: the api_cursor section needs strategy api_cursor")
+        return
+    listing = raw["listing"]
+    if not isinstance(cfg, dict) or set(cfg) - {"initial_since", "max_order_violations"}:
+        raise PlanError(f"{site_id}: api_cursor is {{initial_since, max_order_violations}}")
+    since = cfg.get("initial_since")
+    try:
+        valid = isinstance(since, str) and re.fullmatch(r"\d{4}-\d{2}-\d{2}", since) and date.fromisoformat(since)
+    except ValueError:
+        valid = False
+    if not valid:
+        raise PlanError(f"{site_id}: api_cursor.initial_since must be a YYYY-MM-DD date")
+    if type(cfg.get("max_order_violations", 0)) is not int or cfg.get("max_order_violations", 0) < 0:
+        raise PlanError(f"{site_id}: api_cursor.max_order_violations must be a non-negative integer")
+    if not listing.get("next_cursor") or listing.get("method", "GET") != "GET":
+        raise PlanError(f"{site_id}: api_cursor needs a GET listing with next_cursor paging")
+    if (listing.get("total") or {}).get("type") != "json":
+        raise PlanError(f"{site_id}: api_cursor needs listing.total (the API's reported count, type json)")
+    params = listing.get("params") or {}
+    holders = [k for k, v in params.items() if isinstance(v, str) and "{since}" in v]
+    if len(holders) != 1 or params[holders[0]].count("{since}") != 1 or "{since}" in listing["url"]:
+        raise PlanError(f"{site_id}: api_cursor needs exactly one {{since}} in one listing parameter")
+    if raw.get("incremental") is not None:
+        # Every api_cursor run already reads only what changed since the watermark.
+        raise PlanError(f"{site_id}: api_cursor plans take no incremental section")
+
+
 def _validate_second_step(site_id, adapter):
     """ext:two_step_detail: a link on the detail page is the PDF source (no request) or a second
     detail page (one more governed request). Same host unless listed in allow_hosts."""
@@ -629,6 +667,7 @@ def site_plan(plan, site_id, *, min_interval=MIN_INTERVAL_S, registered=()):
         if not sm.get("sitemap_url") and not sm.get("from_robots"):
             raise PlanError(f"{site_id}: sitemap requires sitemap_url or from_robots")
     _validate_headers(site_id, raw)
+    _validate_api_cursor(site_id, raw)
     from .incremental import validate_section
     try:
         validate_section(site_id, raw)

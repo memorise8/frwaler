@@ -602,6 +602,10 @@ class SiteRunner:
         Never moves the full run's segments/cursor or certifies completion."""
         from .incremental import IncrementalPolicy, support, walk
         plan, st, site = self.plan, self.store, self.site_id
+        if STRATEGIES[plan.strategy].reopens_complete:
+            # api_cursor: every run reads only what changed since its watermark, so its normal run is
+            # the incremental one (same checkpoint, ledger and stops; known keys are not needed).
+            return dict(self.run(), mode="incremental")
         policy = policy or IncrementalPolicy.from_plan(plan)
         basis, refusal = support(plan)
         if refusal:
@@ -669,7 +673,7 @@ class SiteRunner:
         if held is not None:
             return held
         finished = current and current["plan_fp"] == plan.fingerprint and \
-            current["status"] in COMPLETED
+            current["status"] in COMPLETED and not STRATEGIES[plan.strategy].reopens_complete
         if retry_only or (finished and not refresh):
             state = dict((current or {}).get("state") or {})
             try:

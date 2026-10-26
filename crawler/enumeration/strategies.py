@@ -117,6 +117,9 @@ def listing_request(ctx, call, url):
 
 class Strategy:
     name = ""
+    # A completed site is read again on the next run (not only retried): the source is a query
+    # for what changed since a watermark (api_cursor), so "complete" covers one pass only.
+    reopens_complete = False
 
     def __init__(self, ctx):
         self.ctx = ctx
@@ -659,10 +662,14 @@ class _ForwardPager(Strategy):
             yield Batch(seg, ordered, cursor, listed, reported_total=cursor.get("total"))
 
 
-    def forward_cursor(self, seg, extra_params=None, *, url=None, reverse_within_page=False):
+    def forward_cursor(self, seg, extra_params=None, *, url=None, reverse_within_page=False,
+                       null_cursor_end=False):
         """ext:json_page next-cursor paging: each page names the next one. Only reachable
         forward, so no overlap re-read and no probing past an empty page. The stored cursor
-        keeps the token of the next page, so a resumed run continues there."""
+        keeps the token of the next page, so a resumed run continues there.
+        ``null_cursor_end``: an empty page that states a null next cursor (field present) is the end
+        (api_cursor: tokens are never reused across runs, so it cannot be an expired one); the caller
+        still compares the listed count with the reported total."""
         ctx = self.ctx
         row = self.segment_row(seg)
         cursor = row["cursor"] or {"next_page": self.start_page, "next_token": None, "prev_fp": None, "total": None}
@@ -691,6 +698,8 @@ class _ForwardPager(Strategy):
                 # total confirms everything was listed; otherwise never counted as complete.
                 listed = ctx.store.segment(ctx.site_id, ctx.plan_fp, seg)["listed"]
                 if not page.extra.get("next_cursor") and cursor.get("total") is not None and listed == cursor["total"]:
+                    return "cursor_end", cursor.get("total")
+                if null_cursor_end and page.extra.get("next_cursor") is None and not page.extra.get("next_cursor_missing"):
                     return "cursor_end", cursor.get("total")
                 ctx.store.event(ctx.site_id, "empty_page_by_cursor", {"segment": seg, "page": n, "listed": listed,
                                                                       "total": cursor.get("total")})
@@ -1399,7 +1408,104 @@ class Sitemap(Strategy):
             self.outcome = ("complete", "all_sitemaps_listed")
 
 
-STRATEGIES = {cls.name: cls for cls in (LastPageBackward, DateRangeSplit, OldestFirstSort, Sitemap)}
+# ---------------------------------------------------------------------------
+# api_cursor
+# ---------------------------------------------------------------------------
+class ApiCursor(_ForwardPager):
+    """One cursor-paged API query for the items updated since a watermark, in ascending update order
+    (e.g. OpenAlex works: ``filter=...,from_updated_date:{since}``, ``sort=updated_date:asc``).
+
+    The ``{since}`` placeholder (in one listing parameter) is the watermark in the site state
+    (``state["api_cursor"]["since"]``), else ``api_cursor.initial_since``. Every run starts a fresh
+    query with a fresh cursor (tokens expire); the segment is reset. Item dates (``item.date``,
+    the update date) must not go down (``max_order_violations``, default 0), else the run stops
+    before that batch is saved. Once a saved batch's order is confirmed by the next batch (or the
+    cursor ended), the watermark moves to its last date: an interrupted run, a page cap or a cooldown resumes from that day (re-read days are
+    skipped through the item ledger). At the cursor end the run is complete; the next run reopens
+    from the watermark (``reopens_complete``). Nothing that was not read is ever certified."""
+    name = "api_cursor"
+    SEGMENT = "all"
+    reopens_complete = True
+
+    def __init__(self, ctx):
+        super().__init__(ctx)
+        self.cfg = ctx.plan.section("api_cursor")
+        self.query_since = None  # the run's query is fixed when it starts; the watermark moves on
+
+    @property
+    def since(self):
+        return (self.ctx.state.get("api_cursor") or {}).get("since") or self.cfg["initial_since"]
+
+    def page_url(self, n, extra=None, **kw):
+        since = self.query_since or self.since
+        params = {k: v.replace("{since}", since) for k, v in (self.listing.get("params") or {}).items()
+                  if isinstance(v, str) and "{since}" in v}
+        return super().page_url(n, {**params, **(extra or {})}, **kw)
+
+    def advance(self, day):
+        ctx = self.ctx
+        if day and day > self.since:
+            ctx.state["api_cursor"] = dict(ctx.state.get("api_cursor") or {}, since=day)
+            ctx.store.save_state(ctx.site_id, ctx.state)
+
+    def batches(self):
+        ctx = self.ctx
+        start = self.query_since = self.since
+        self.segment_row(self.SEGMENT)
+        ctx.store.reset_segment(ctx.site_id, ctx.plan_fp, self.SEGMENT)
+        ctx.store.event(ctx.site_id, "api_cursor_since", {"since": start})
+        gen = self.forward_cursor(self.SEGMENT, null_cursor_end=True)
+        allowed = int(self.cfg.get("max_order_violations", 0))
+        violations, prev_date, pending = 0, None, None
+        while True:
+            try:
+                batch = next(gen)
+            except StopIteration as stop:
+                end, total = stop.value
+                break
+            dates = [item.date for item in batch.items if item.date]
+            for day in dates:
+                if prev_date is not None and day < prev_date:
+                    violations += 1
+                prev_date = day
+            if violations > allowed:
+                # The sort was ignored: a watermark taken from this order could skip items. The
+                # previous batch's date was never committed (it is checked against this one first).
+                ctx.store.event(ctx.site_id, "sort_order_not_ascending", {"violations": violations})
+                raise StrategyStop("incomplete", "sort_order_not_ascending")
+            # The previous batch is saved and its order is now confirmed by this batch.
+            self.advance(pending)
+            yield batch
+            # Saved (or ledgered) by the runner; its date counts once the next batch keeps the order.
+            pending = dates[-1] if dates else pending
+        if end == "cursor_end":
+            self.advance(pending)  # nothing is left after the last batch
+        detail = {"since": start, "watermark": self.since, "end": end, "reported_total": total}
+        if end == "page_cap":
+            if self.since == start:
+                # A whole capped run inside one day: every next run would read the same day again.
+                ctx.store.event(ctx.site_id, "api_cursor_watermark_not_advanced", detail)
+                self.outcome = ("incomplete", "page_cap_within_one_day")
+                return
+            self.outcome = ("incomplete", "page_cap_reached")
+            return
+        if end == "empty_first_page" and total != 0:
+            self.outcome = ("incomplete", "empty_first_page_unverified")
+            return
+        listed = ctx.store.listed_count(ctx.site_id, ctx.plan_fp)
+        ctx.store.update_segment(ctx.site_id, ctx.plan_fp, self.SEGMENT, status="complete",
+                                 evidence=end, reported_total=total)
+        ctx.state["api_cursor"] = dict(ctx.state.get("api_cursor") or {}, since=self.since)  # saved with the site
+        ctx.store.event(ctx.site_id, "api_cursor_end", dict(detail, listed=listed))
+        if total is not None and listed < total:
+            # Fewer read than the query counted at its start (items updated during the run only add).
+            ctx.store.event(ctx.site_id, "total_mismatch", {"reported_total": total, "listed": listed})
+            self.outcome = ("complete_with_mismatch", "reported_total_mismatch")
+        else:
+            self.outcome = ("complete", f"exhausted_{end}")
+
+
+STRATEGIES = {cls.name: cls for cls in (LastPageBackward, DateRangeSplit, OldestFirstSort, Sitemap, ApiCursor)}
 
 
 def today_from(value=None):

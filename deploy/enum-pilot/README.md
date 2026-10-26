@@ -42,6 +42,7 @@ deploy/enum-pilot/run-pilot.sh run /path/plan.json <site-id> [<site-id> ...]
 `--seed-holds` 가 이미지의 `--help` 출력에 없으면 스크립트가 경고하고 중단한다 (틀 변경이 반영된 소스로 다시 build).
 
 선택 환경변수: `ENUM_REFERENCE_DB`(읽기 전용 참조 sqlite -> `--reference-db`), `ENUM_ALLOW_EMPTY_REFERENCE=1`, `ENUM_FILES=1`(`--files`), `ENUM_WITH_BROWSER=1`, `ENUM_EXTRA_ARGS`(예: `--retry-failed`), `ENUM_PILOT_DATE`, `ENUM_PILOT_ROOT`.
+`ENUM_ENV_FILE`: plan 의 `request_headers_env` 가 읽는 비밀값(API 키) 파일(`KEY=값` 줄) 호스트 경로 → `docker run --env-file`. 현재 사용자 소유의 일반 파일(링크 아님)이고 그룹·다른 사용자 권한이 없어야 한다(`chmod 600`). 값은 따옴표 없이 쓴다(`--env-file` 은 따옴표도 값으로 넘긴다). 스크립트는 내용을 읽거나 출력하지 않는다.
 참조 DB 는 기본으로 사용하지 않는다. 등록 수집기 사이트에서 참조 행이 없을 때의 동작은 문서상 거부이며 `--allow-empty-reference` 일 때만 통과(보고서에 경고 기록).
 
 ## 3. 읽기 전용 사전 점검 체크리스트 (명령만; 사람이 서버에서 실행)

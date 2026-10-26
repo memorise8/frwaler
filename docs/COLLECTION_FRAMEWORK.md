@@ -18,7 +18,7 @@ crawler/enumeration/
   parsing.py       목록 파서(html 선택자 / json 경로 / 어댑터 메서드), 총건수 추출
   store.py         SQLite 상태 저장소: 사이트 상태, 구간, 항목 대장(실패 포함), 파일 대장
   adapters.py      기존 수집기의 '상세 파싱/저장' 재사용 층 (generic 설정, 커스텀 파서 메서드)
-  strategies.py    4개 열거기 (last_page_backward, date_range_split, oldest_first_sort, sitemap)
+  strategies.py    5개 열거기 (last_page_backward, date_range_split, oldest_first_sort, sitemap, api_cursor)
   runner.py        SiteRunner: 열거기 배치 → 항목 처리 → 체크포인트, 완료 판정
   files.py         파일(PDF/첨부) 별도 패스
   report.py        완전성 점검 보고(JSON/CSV)
@@ -215,6 +215,23 @@ enum_event(id PK, site_id, at, kind, detail JSON)   -- 접근 차단, 구간 불
   `PermanentFailure`는 재시도하지 않는다.
 * gzip 해제 크기 상한 `sitemap.max_uncompressed_bytes`(기본 64 MiB; 규격 상한 50 MB). 넘으면 `sitemap_too_large`로
   `failed`(재시도 안 함, 사이트 `incomplete`).
+
+### 5.5 api_cursor (바뀐 것만 읽는 커서 API, 2026-10-26)
+
+* 대상: "언제 이후 바뀐 것" 필터와 커서 쪽 넘김이 있는 API(예: OpenAlex `/works`, `filter=...,from_updated_date:{since}`,
+  `sort=updated_date:asc`, `cursor=*` → `meta.next_cursor`). plan 예: `docs/examples/openalex-doaj-plan.json`.
+* `listing.params` 한 곳의 `{since}` 를 기준일(워터마크, 상태 `state.api_cursor.since`, 처음은 `api_cursor.initial_since`)로 채운다.
+  실행마다 질의는 그 실행 시작 때의 기준일로 고정, 커서는 `*` 부터 새로(토큰은 만료되므로 실행을 넘겨 쓰지 않음), 구간 `all` 은 초기화.
+* 항목 날짜(갱신일, `item.date`)가 거꾸로 가면(`max_order_violations`, 기본 0) 그 묶음을 저장하기 전에 `sort_order_not_ascending` 으로 멈춤.
+* 묶음(한 쪽)을 저장·대장 기록하고 다음 묶음이 순서를 지킨 것을 확인한 뒤(또는 커서 끝) 기준일을 그 묶음의 마지막 날짜로 올리고 상태에 바로 저장한다. 그래서 중단·`page_cap_reached`·
+  429 쿨다운(`rate_limited_cooldown`) 뒤 다음 실행은 그날부터 다시 읽고(이미 받은 것은 대장으로 건너뜀), 읽지 않은 것은 완료로 치지 않는다.
+  한 실행이 하루 안에서 쪽 상한에 닿으면 `api_cursor_watermark_not_advanced` 이벤트와 `incomplete/page_cap_within_one_day`(같은 날을 계속 다시 읽음: 사람이 상한을 올림).
+* 끝: 결과가 빈 쪽 + `next_cursor: null`(칸 있음). 읽은 고유 수 < 첫 쪽 `meta.count` 이면 `complete_with_mismatch`(실행 중 갱신은 수를 늘리기만 함).
+  첫 쪽이 비고 count 0 이면 "바뀐 것 없음"으로 완료.
+* 완료된 사이트도 다음 실행(`resume`, `--incremental`, 수집 예약)에서 기준일부터 다시 연다(`reopens_complete`; 재시도만 하지 않음).
+  `--incremental` 은 같은 실행으로 처리(알려진 키 파일 불필요). plan 이 바뀌면(fingerprint) 기준일은 `initial_since` 로 돌아간다(더 읽을 뿐 빠뜨리지 않음).
+* plan 검사: next_cursor GET 목록, `listing.total`(json), `{since}` 정확히 하나, `api_cursor` 는 `initial_since`(YYYY-MM-DD)·`max_order_violations` 만,
+  `incremental` 절 금지.
 
 ## 6. 항목별 실패 대장
 

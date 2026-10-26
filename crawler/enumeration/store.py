@@ -117,8 +117,9 @@ class Store:
                                                "complete_with_review"):
                 # A completed enumeration re-runs from scratch as a fresh pass;
                 # saved items are skipped through the item ledger. Segments found on a hub page
-                # (ext:multi_listing) are remembered, so one missing later is still read.
-                state = {k: state[k] for k in ("discovered_segments", "discovered_keys") if k in state}
+                # (ext:multi_listing) are remembered, so one missing later is still read; so is an
+                # api_cursor watermark (the next pass reads only what changed since it).
+                state = {k: state[k] for k in ("discovered_segments", "discovered_keys", "api_cursor") if k in state}
                 self._exec("DELETE FROM enum_segment WHERE site_id=? AND plan_fp=?", (site_id, plan_fp))
                 self._exec("DELETE FROM enum_listed WHERE site_id=? AND plan_fp=?", (site_id, plan_fp))
         else:
@@ -182,6 +183,17 @@ class Store:
         args.append(now())
         self._exec(f"UPDATE enum_segment SET {','.join(sets)} WHERE site_id=? AND plan_fp=? AND segment_key=?",
                    (*args, site_id, plan_fp, key))
+
+    def reset_segment(self, site_id, plan_fp, key):
+        """A fresh listing generation for one segment: no cursor, nothing listed (api_cursor reads a new
+        query each run; its cursor tokens expire with the run)."""
+        with self.lock:
+            self.conn.execute("DELETE FROM enum_listed WHERE site_id=? AND plan_fp=? AND segment_key=?",
+                              (site_id, plan_fp, key))
+            self.conn.execute("UPDATE enum_segment SET status='running',cursor=NULL,reported_total=NULL,listed=0,"
+                              "evidence=NULL,updated_at=? WHERE site_id=? AND plan_fp=? AND segment_key=?",
+                              (now(), site_id, plan_fp, key))
+            self.conn.commit()
 
     def mark_listed(self, site_id, plan_fp, segment_key, keys):
         """Record keys listed in this generation; returns the segment's unique listed count."""

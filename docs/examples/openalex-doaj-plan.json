@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "sites": {
+    "openalex-doaj": {
+      "strategy": "api_cursor",
+      "base_url": "https://openalex.org",
+      "request_interval_s": 1.5,
+      "max_pages": 2000,
+      "max_requests": 2300,
+      "max_runtime_s": 21600,
+      "request_headers_env": {"Authorization": {"env": "OPENALEX_API_KEY", "format": "Bearer {}"}},
+      "request_headers_hosts": ["api.openalex.org"],
+      "api_cursor": {"initial_since": "2026-10-14"},
+      "adapter": {
+        "type": "crawler",
+        "contract_version": 1,
+        "list_method": "_enumeration_list",
+        "list_args": ["json"],
+        "paper_method": "_enumeration_paper",
+        "paper_args": ["item"],
+        "none_is_rule_skip": true,
+        "max_consecutive_rule_skips": 100
+      },
+      "listing": {
+        "url": "https://api.openalex.org/works",
+        "params": {
+          "filter": "primary_location.source.is_in_doaj:true,type:article|review,from_updated_date:{since}",
+          "sort": "updated_date:asc",
+          "per_page": 100,
+          "cursor": "*",
+          "select": "id,doi,title,display_name,publication_date,publication_year,language,type,authorships,primary_location,best_oa_location,open_access,keywords,abstract_inverted_index,updated_date"
+        },
+        "next_cursor": {"path": "meta.next_cursor", "param": "cursor"},
+        "parser": {
+          "type": "adapter",
+          "key_field": "external_id",
+          "url_field": "url",
+          "date_field": "updated_date",
+          "title_field": "title"
+        },
+        "total": {"type": "json", "path": "meta.count"}
+      },
+      "notes": "Works updated since the watermark (first run: the 2026-10-14 snapshot date). 100 works per list call; max_pages 2000 = 200,000 works and at most 2,300 calls per run, far below the free key's ~10,000 list calls a day. Daily DOAJ article/review updates are thousands to tens of thousands (register with --approved-large). PDFs are not downloaded here."
+    }
+  }
+}

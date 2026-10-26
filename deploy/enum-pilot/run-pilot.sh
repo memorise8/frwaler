@@ -15,6 +15,8 @@
 #   ENUM_KNOWN_KEYS            증분용 이미 납품된 키 파일(CSV/JSONL: site_id,post_number,meta_url) 호스트 경로 -> --known-keys
 #   ENUM_WITH_BROWSER          1 이면 빌드 시 크로미움 설치
 #   ENUM_EXTRA_ARGS            틀에 그대로 넘길 추가 옵션(공백 구분, 예: "--retry-failed")
+#   ENUM_ENV_FILE              plan 의 request_headers_env 가 읽을 비밀값 파일(KEY=값 줄) 호스트 경로 -> docker --env-file.
+#                              현재 사용자 소유의 일반 파일, 그룹·다른 사용자 권한 없음(chmod 600). 값에 따옴표 금지. 내용은 출력하지 않는다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -76,6 +78,14 @@ cmd_run() {
   local seed="${ENUM_SEED_HOLDS:-$(dirname "$plan")/seed-holds.csv}"
   [[ -f "$seed" ]] || die "seed-holds.csv 없음: $seed"
   seed="$(cd "$(dirname "$seed")" && pwd)/$(basename "$seed")"
+  local envargs=()
+  if [[ -n "${ENUM_ENV_FILE:-}" ]]; then
+    # 비밀값(API 키) 파일: 내용은 읽지도 출력하지도 않고 docker 가 컨테이너 환경으로만 넘긴다.
+    [[ -f "$ENUM_ENV_FILE" && ! -L "$ENUM_ENV_FILE" ]] || die "ENUM_ENV_FILE 은 일반 파일이어야 함(링크·없는 파일 거부)"
+    (( (8#$(stat -c %a "$ENUM_ENV_FILE") & 8#077) == 0 )) || die "ENUM_ENV_FILE 을 그룹·다른 사용자가 읽거나 쓸 수 있음(chmod 600 필요)"
+    [[ "$(stat -c %u "$ENUM_ENV_FILE")" == "$(id -u)" ]] || die "ENUM_ENV_FILE 이 현재 사용자 소유가 아님"
+    envargs=(--env-file "$(cd "$(dirname "$ENUM_ENV_FILE")" && pwd)/$(basename "$ENUM_ENV_FILE")")
+  fi
 
   safety_check
   docker image inspect "$IMAGE" >/dev/null 2>&1 || die "이미지 없음: $IMAGE (먼저 build)"
@@ -151,6 +161,7 @@ cmd_run() {
     --read-only --tmpfs /tmp:rw,noexec,nosuid,size=256m \
     --cap-drop ALL --security-opt no-new-privileges \
     --user "${RUN_UID}:${RUN_GID}" \
+    ${envargs[@]+"${envargs[@]}"} \
     "${mounts[@]}" \
     "$IMAGE" "${fargs[@]}"
 }
