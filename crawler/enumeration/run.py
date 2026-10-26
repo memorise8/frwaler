@@ -302,6 +302,12 @@ def main(argv=None):
     except PlanError as exc:
         p.error(str(exc))
     policies, seeds = {}, {}
+    if args.incremental and (args.known_keys or args.known_run is not None or args.incremental_max_pages is not None):
+        from .strategies import STRATEGIES
+        for plan in plans:
+            if STRATEGIES[plan.strategy].reopens_complete:
+                p.error(f"{plan.site_id}: {plan.strategy} reads from its watermark; --known-keys, --known-run and "
+                        f"--incremental-max-pages do not apply (use the plan's max_pages)")
     if args.incremental:
         from .incremental import IncrementalPolicy, KnownKeys
         for plan in plans:

@@ -5,6 +5,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import tempfile
 import time
 import unittest
@@ -65,6 +66,7 @@ class FakeOpenAlex:
         self.list_urls = []
         self.honour_sort = True  # False: newest first (sort ignored); None: in stored order
         self.refuse_after = None  # list requests answered before every further one is a 429
+        self.count_extra = 0  # meta.count above what is served (works dropped from the index)
 
     def __call__(self, url):
         parts = urlsplit(url)
@@ -85,7 +87,7 @@ class FakeOpenAlex:
         per = int(q["per_page"])
         offset = 0 if q["cursor"] == "*" else int(q["cursor"][1:])
         chunk = rows[offset:offset + per]
-        body = {"meta": {"count": len(rows), "per_page": per, "next_cursor": f"c{offset + per}" if chunk else None},
+        body = {"meta": {"count": len(rows) + self.count_extra, "per_page": per, "next_cursor": f"c{offset + per}" if chunk else None},
                 "results": chunk}
         return Response(200, {"Content-Type": "application/json"}, json.dumps(body).encode())
 
@@ -165,6 +167,10 @@ class ApiCursorTest(unittest.TestCase):
         bad(api_cursor={"initial_since": "2026-10-14", "resume_token": "x"})
         bad(api_cursor={})
         bad(incremental={"known_run": 5})
+        bad(listing=dict(listing, params=dict(listing["params"], per_page=101)))
+        bad(listing=dict(listing, params=dict(listing["params"], per_page="100")))
+        bad(listing=dict(listing, params=dict(listing["params"], sort="updated_date:desc")))
+        bad(listing=dict(listing, params={k: v for k, v in listing["params"].items() if k != "sort"}))
         with self.assertRaises(PlanError):
             self.env.plan(dict(site(), strategy="oldest_first_sort"))  # api_cursor section on another strategy
 
@@ -301,6 +307,53 @@ class ApiCursorTest(unittest.TestCase):
             self.assertEqual((result["status"], result["stop_reason"]),
                              ("config_error", "openalex_work_outside_filter"), result)
 
+    def test_doi_added_later_is_not_a_listing_conflict(self):
+        api = FakeOpenAlex([work(1, "2026-10-14T01:00:00", doi=False)])
+        self.go(api)
+        api.works = [work(1, "2026-10-15T01:00:00")]  # the same work, now with a DOI
+        result = self.go(api)
+        self.assertEqual(result["status"], "complete", result)
+        self.assertEqual((result["stats"]["listing_identity_conflicts"], result["stats"]["skipped_known"]), (0, 1))
+        self.assertEqual(self.env.store.item_counts(SITE)[1], {})
+        rows = self.env.conn.execute("SELECT post_number, meta_url FROM documents").fetchall()
+        self.assertEqual([tuple(r) for r in rows], [("W1", "https://openalex.org/W1")])  # kept as first saved
+
+    def test_count_mismatch_holds_the_watermark_for_three_runs(self):
+        api = FakeOpenAlex([work(1, "2026-10-14T01:00:00"), work(2, "2026-10-16T01:00:00"),
+                            work(3, "2026-10-17T01:00:00")])
+        api.count_extra = 1
+        for run in (1, 2):
+            result = self.go(api)
+            self.assertEqual((result["status"], result["stop_reason"]), ("complete_with_mismatch", "reported_total_mismatch"))
+            self.assertEqual(self.watermark(), "2026-10-14")  # the same window is read again
+            self.assertEqual(self.env.store.site(SITE)["state"]["api_cursor"]["mismatch"], {"start": "2026-10-14", "runs": run})
+        result = self.go(api)
+        self.assertEqual(result["status"], "complete_with_mismatch")
+        self.assertEqual(self.watermark(), "2026-10-17")
+        accepted = self.env.store.events(SITE, "api_cursor_mismatch_accepted")
+        self.assertEqual([e["detail"]["runs"] for e in accepted], [3])
+        self.assertEqual(len(self.env.store.events(SITE, "api_cursor_mismatch_held")), 2)
+        api.count_extra = 0
+        self.assertEqual(self.go(api)["status"], "complete")
+        self.assertNotIn("mismatch", self.env.store.site(SITE)["state"]["api_cursor"])
+
+    def test_every_incomplete_run_that_commits_nothing_is_reported(self):
+        api = FakeOpenAlex([work(i, f"2026-10-{13 + i:02d}T01:00:00") for i in range(1, 5)])
+        api.refuse_after = 1
+        self.assertEqual(self.go(api)["stop_reason"], "rate_limited_cooldown")
+        events = self.env.store.events(SITE, "api_cursor_watermark_not_advanced")
+        self.assertEqual([(e["detail"]["since"], e["detail"]["reason"]) for e in events],
+                         [("2026-10-14", "rate_limited_cooldown")])
+
+    def test_cli_refuses_incremental_options_for_api_cursor(self):
+        from crawler.enumeration import run
+        args = ["--plan", str(ROOT / "docs" / "examples" / "openalex-doaj-plan.json"), "--site", SITE,
+                "--state-dir", str(self.env.root / "state"), "--db", str(self.env.root / "enum_cli.db"), "--incremental"]
+        for extra in (["--known-keys", str(self.env.root / "k.csv")], ["--incremental-max-pages", "5"], ["--known-run", "3"]):
+            with self.assertRaises(SystemExit) as caught, mock.patch("sys.stderr"):
+                run.main(args + extra)
+            self.assertEqual(caught.exception.code, 2)
+
     # -- mapping -----------------------------------------------------------
     def test_abstract_restoration(self):
         restore = MODULE.restore_abstract
@@ -323,6 +376,26 @@ class ApiCursorTest(unittest.TestCase):
                 "published_date_precision", "listed_date_raw", "listed_date_status", "listed_date_precision")
         rows = [tuple(r) for r in self.env.conn.execute(f"SELECT {','.join(cols)} FROM documents ORDER BY seq_id")]
         self.assertEqual(rows, [bulk_document(w) for w in works])
+
+    def test_golden_records_are_saved_exactly_like_the_exported_rows(self):
+        golden = json.loads((ROOT / "tests" / "fixtures" / "openalex_doaj_golden.json").read_text(encoding="utf-8"))
+        self.go(FakeOpenAlex([raw_from_slim(g["slim"]) for g in golden]))
+        cols = list(golden[0]["document"])
+        rows = {r["post_number"]: dict(r) for r in self.env.conn.execute(f"SELECT {','.join(cols)} FROM documents")}
+        self.assertEqual(len(rows), len(golden))
+        for g in golden:
+            self.assertEqual(rows[g["document"]["post_number"]], g["document"])
+
+    def test_slim_record_equals_the_snapshot_filter(self):
+        works = [work(1, "2026-10-14T01:00:00"),
+                 work(2, "2026-10-14T01:00:00", title=None, display_name="Shown", doi=False, best_oa_location=None,
+                      open_access=None, keywords=[{"display_name": ""}, {}], abstract_inverted_index=None),
+                 work(3, "2026-10-14T01:00:00", authorships=None, keywords=None,
+                      primary_location={"pdf_url": "https://p.test/3.pdf", "license": "cc0", "source": {"is_in_doaj": True}},
+                      best_oa_location={"pdf_url": None, "license": None})]
+        works[1]["title"] = None
+        for w in works:
+            self.assertEqual(MODULE.slim(w), reference_slim(w))
 
     def test_site_row_matches_the_bulk_folders(self):
         cls = CRAWLERS[SITE]
@@ -356,6 +429,52 @@ class ApiCursorTest(unittest.TestCase):
             with self.assertRaises(PlanError) as caught:
                 make_fetcher(self.env.plan(site()), self.gates, HeaderTransport(api))
         self.assertIn("OPENALEX_API_KEY", str(caught.exception))
+
+
+def reference_slim(w):
+    """The snapshot filter's slim record, as it ran on the server for the bulk export (verified copy)."""
+    def abstract(inv):
+        if not inv:
+            return None
+        pos = {}
+        for word, places in inv.items():
+            for p in places:
+                pos[p] = word
+        return " ".join(pos[i] for i in sorted(pos)) or None
+    pl = w.get("primary_location") or {}
+    src = pl.get("source") or {}
+    best = w.get("best_oa_location") or {}
+    return {
+        "id": w["id"].rsplit("/", 1)[-1], "doi": w.get("doi"), "title": w.get("title") or w.get("display_name"),
+        "publication_date": w.get("publication_date"), "publication_year": w.get("publication_year"),
+        "language": w.get("language"), "type": w.get("type"),
+        "authors": [((a.get("author") or {}).get("display_name")) for a in (w.get("authorships") or [])
+                    if (a.get("author") or {}).get("display_name")],
+        "journal": src.get("display_name"), "source_id": src.get("id", "").rsplit("/", 1)[-1],
+        "issn_l": src.get("issn_l"), "publisher": src.get("host_organization_name"),
+        "landing_page_url": pl.get("landing_page_url"), "pdf_url": best.get("pdf_url") or pl.get("pdf_url"),
+        "oa_url": (w.get("open_access") or {}).get("oa_url"), "license": best.get("license") or pl.get("license"),
+        "keywords": [k.get("display_name") for k in (w.get("keywords") or []) if k.get("display_name")],
+        "abstract": abstract(w.get("abstract_inverted_index")), "updated_date": w.get("updated_date"),
+    }
+
+
+def raw_from_slim(r):
+    """An API-shaped work whose slim record is ``r`` (the golden fixture has no raw JSON)."""
+    words = {}
+    for i, word in enumerate((r["abstract"] or "").split(" ") if r["abstract"] is not None else []):
+        words.setdefault(word, []).append(i)
+    return {"id": "https://openalex.org/" + r["id"], "doi": r["doi"], "title": r["title"], "display_name": r["title"],
+            "publication_date": r["publication_date"], "publication_year": r["publication_year"],
+            "language": r["language"], "type": r["type"],
+            "authorships": [{"author": {"display_name": a}} for a in r["authors"]],
+            "primary_location": {"landing_page_url": r["landing_page_url"], "pdf_url": None, "license": None,
+                                 "source": {"id": "https://openalex.org/" + r["source_id"], "display_name": r["journal"],
+                                            "issn_l": r["issn_l"], "host_organization_name": r["publisher"],
+                                            "is_in_doaj": True}},
+            "best_oa_location": {"pdf_url": r["pdf_url"], "license": r["license"]},
+            "open_access": {"oa_url": r["oa_url"]}, "keywords": [{"display_name": k} for k in r["keywords"]],
+            "abstract_inverted_index": words or None, "updated_date": r["updated_date"]}
 
 
 def bulk_document(w):
@@ -463,6 +582,98 @@ class RunPilotEnvFileTest(unittest.TestCase):
             self.assertIn("ENUM_ENV_FILE", proc.stderr)
         self.assertEqual(self.docker_log(), "")
         self.assertNotIn(KEY, proc.stdout + proc.stderr)
+
+
+class CollectRunnerApiCursorTest(unittest.TestCase):
+    """deploy/collect-runner/runner.py: incremental admission, per-site env file, one state folder per site."""
+
+    def setUp(self):
+        import hashlib
+        from tests.test_enumeration_incremental_routing import load_runner
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.home = tmp.name
+        old = os.environ.get("RUNNER_HOME")
+        self.addCleanup(lambda: os.environ.__setitem__("RUNNER_HOME", old) if old else os.environ.pop("RUNNER_HOME", None))
+        self.r = load_runner(self.home)
+        self.r.docker_running = lambda: set()
+        os.makedirs(os.path.join(self.home, "logs"))
+        self.c = self.r.db()
+        plan_file = os.path.join(self.home, SITE + ".json")
+        with open(plan_file, "w") as fh:
+            json.dump({"sites": {SITE: PLAN["sites"][SITE]}}, fh)
+        self.secrets = os.path.join(self.home, "secrets")
+        os.makedirs(self.secrets, mode=0o700)
+        self.env_file = os.path.join(self.secrets, "openalex.env")
+        with open(self.env_file, "w") as fh:
+            fh.write("OPENALEX_API_KEY=" + KEY + "\n")
+        os.chmod(self.env_file, 0o600)
+        self.reg = {SITE: {"site_id": SITE, "plan_file": plan_file, "unit": "openalex.org", "ready": True,
+                           "sha256": hashlib.sha256(open(plan_file, "rb").read()).hexdigest(), "src": str(ROOT),
+                           "expected_items": None, "approved_large": True, "strategy": "api_cursor",
+                           "env_file": self.env_file}}
+        self.r.save_registry(self.reg)
+
+    def test_incremental_is_admitted_for_api_cursor(self):
+        self.assertIsNone(self.r.incremental_refusal(self.reg[SITE]))
+        self.assertEqual(self.r.check_request(self.c, SITE, "incremental", None), (None, None))
+
+    def test_env_file_checks(self):
+        refuse = self.r.env_file_refusal
+        self.assertIsNone(refuse(self.env_file))
+        self.assertEqual(refuse("secrets/openalex.env"), "env_file_not_absolute")
+        self.assertEqual(refuse(os.path.join(self.secrets, "missing.env")), "env_file_missing")
+        link = os.path.join(self.secrets, "link.env")
+        os.symlink(self.env_file, link)
+        self.assertEqual(refuse(link), "env_file_not_regular")
+        os.chmod(self.env_file, 0o640)
+        self.assertEqual(refuse(self.env_file), "env_file_mode_not_600")
+        os.chmod(self.env_file, 0o600)
+        os.chmod(self.secrets, 0o770)
+        self.assertEqual(refuse(self.env_file), "env_file_dir_writable_by_others")
+        os.chmod(self.secrets, 0o700)
+
+    def exec_env(self, run_id, mode, tag):
+        out = os.path.join(self.home, run_id + ".json")
+        known = os.path.join(self.home, "known")
+        os.makedirs(known, exist_ok=True)
+        open(os.path.join(known, SITE + ".csv"), "w").write("post_number,meta_url\n")
+        json.dump({"fake_cmd": [sys.executable, "-c", "import json,os,sys; json.dump({k: os.environ.get(k) for k in "
+                                "('ENUM_INCREMENTAL','ENUM_KNOWN_KEYS','ENUM_PILOT_DATE','ENUM_ENV_FILE')}, "
+                                "open(sys.argv[1],'w'))", out], "known_keys_dir": known, "runs_root": self.home},
+                  open(os.path.join(self.home, "config.json"), "w"))
+        self.c.execute("insert into runs(run_id,site_id,mode,status,unit,tag) values(?,?,?,'running','openalex.org',?)",
+                       (run_id, SITE, mode, tag))
+        with mock.patch.dict(os.environ, {"ENUM_ENV_FILE": "/elsewhere/other.env"}):
+            self.assertEqual(self.r._exec(self.c, run_id), 0)
+        return json.load(open(out))
+
+    def test_exec_passes_only_this_sites_env_file_and_no_known_keys(self):
+        env = self.exec_env("r0001", "incremental", "20261026-s1")
+        self.assertEqual(env, {"ENUM_INCREMENTAL": "1", "ENUM_KNOWN_KEYS": None, "ENUM_PILOT_DATE": "20261026-s1",
+                               "ENUM_ENV_FILE": self.env_file})
+        self.reg[SITE]["env_file"] = None
+        self.r.save_registry(self.reg)
+        self.assertIsNone(self.exec_env("r0002", "resume", "20261026-s1")["ENUM_ENV_FILE"])  # never inherited
+        os.chmod(self.env_file, 0o644)
+        self.reg[SITE]["env_file"] = self.env_file
+        self.r.save_registry(self.reg)
+        with self.assertRaisesRegex(RuntimeError, "env_file_mode_not_600"):
+            self.r._exec(self.c, "r0001")
+
+    def test_resume_incremental_and_scheduled_runs_share_one_state_folder(self):
+        tags = []
+        for n, mode in enumerate(("resume", "incremental", "incremental"), 1):
+            self.c.execute("insert into runs(run_id,site_id,mode,status,unit) values(?,?,?,'queued','openalex.org')",
+                           ("r%04d" % n, SITE, mode))
+            with mock.patch.object(self.r.subprocess, "Popen") as popen:
+                popen.return_value.pid = 4242
+                self.r.tick()
+            row = self.c.execute("select * from runs where run_id=?", ("r%04d" % n,)).fetchone()
+            self.assertEqual(row["status"], "running")
+            tags.append(row["tag"])
+            self.c.execute("update runs set status='done' where run_id=?", ("r%04d" % n,))
+        self.assertEqual(len(set(tags)), 1, tags)  # the watermark in <tag>/data/state is read by every run
 
 
 if __name__ == "__main__":

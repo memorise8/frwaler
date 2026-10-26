@@ -15,7 +15,7 @@
 사용법: runner.py serve | ensure | ctl <명령> ...  (runnerctl 이 감싼다)
 표준 라이브러리만 쓴다. 파이썬 3.9 이상.
 """
-import argparse, csv, datetime, fcntl, glob, hashlib, hmac, json, os, re, secrets, signal, socketserver, sqlite3, subprocess, sys, threading, time
+import argparse, csv, datetime, fcntl, glob, hashlib, hmac, json, os, re, secrets, signal, socketserver, sqlite3, stat, subprocess, sys, threading, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 HOME = os.environ.get("RUNNER_HOME") or os.path.dirname(os.path.abspath(__file__))
@@ -51,6 +51,8 @@ CONFIG_DEFAULTS = {
 MODES = ("trial", "resume", "incremental")
 # 증분은 앞쪽부터 읽는다: 최신순 목록만. crawler/enumeration/incremental.py support() 와 같은 규칙(그쪽이 실행 때 다시 판정).
 FRONT_PAGEABLE = ("last_page_backward",)
+# 기준일(워터마크)부터 바뀐 것만 읽는 전략: 증분(수집 예약)은 이어받기 폴더에서 기준일부터 다시 연 실행이다(상태 저장소의 기준일을 쓴다).
+WATERMARK_STRATEGIES = ("api_cursor",)
 TAG_RE = re.compile(r"^[0-9]{8}([-_][A-Za-z0-9]+)?$")
 SITE_RE = re.compile(r"^[0-9A-Za-z._-]{1,120}$")
 RUN_RE = re.compile(r"^r[0-9]{4,}$")
@@ -210,6 +212,8 @@ def incremental_refusal(e):
     except (OSError, ValueError, KeyError, TypeError):
         return "plan_unreadable"
     strategy = site.get("strategy")
+    if strategy in WATERMARK_STRATEGIES:
+        return None
     order = (site.get("incremental") or {}).get("order") if isinstance(site.get("incremental"), dict) else None
     if strategy == "oldest_first_sort":
         return "listing_order_oldest_first"
@@ -217,6 +221,26 @@ def incremental_refusal(e):
         return "strategy_not_front_pageable:%s" % strategy
     if order in ("oldest_first", "unknown"):
         return "listing_order_%s" % order
+    return None
+
+
+def env_file_refusal(p):
+    """비밀값 파일(ENUM_ENV_FILE)을 쓸 수 없는 까닭(없으면 None). 내용은 읽지 않는다: 절대 경로, 링크 아닌 일반 파일,
+    실행기 사용자 소유, 그룹·다른 사용자 권한 없음(600), 상위 폴더를 그룹·다른 사용자가 쓸 수 없음."""
+    if not isinstance(p, str) or not os.path.isabs(p):
+        return "env_file_not_absolute"
+    try:
+        st, parent = os.lstat(p), os.stat(os.path.dirname(p))
+    except OSError:
+        return "env_file_missing"
+    if not stat.S_ISREG(st.st_mode):
+        return "env_file_not_regular"
+    if st.st_uid != os.getuid():
+        return "env_file_not_owner"
+    if st.st_mode & 0o077:
+        return "env_file_mode_not_600"
+    if parent.st_mode & 0o022:
+        return "env_file_dir_writable_by_others"
     return None
 
 
@@ -526,8 +550,14 @@ def _exec(c, run_id):
     env = dict(os.environ, PATH=cfg["path_prefix"] + ":" + os.environ.get("PATH", "/usr/bin:/bin"),
                ENUM_PILOT_ROOT=cfg["runs_root"], ENUM_PILOT_DATE=tag, ENUM_SEED_HOLDS=cfg["seed_holds"],
                ENUM_ALLOW_EMPTY_REFERENCE="1", ENUM_REFERENCE_DB=cfg["reference_db"])
-    for k in ("ENUM_EXTRA_ARGS", "ENUM_FILES", "ENUM_WITH_BROWSER", "ENUM_INCREMENTAL", "ENUM_KNOWN_KEYS"):
+    for k in ("ENUM_EXTRA_ARGS", "ENUM_FILES", "ENUM_WITH_BROWSER", "ENUM_INCREMENTAL", "ENUM_KNOWN_KEYS", "ENUM_ENV_FILE"):
         env.pop(k, None)
+    if e.get("env_file"):
+        # 그 사이트의 비밀값 파일만(실행기 전체 환경으로 넘기지 않는다). 경로만 넘기고 내용은 docker 가 읽는다.
+        why = env_file_refusal(e["env_file"])
+        if why:
+            raise RuntimeError("비밀값 파일 사용 불가: %s" % why)
+        env["ENUM_ENV_FILE"] = e["env_file"]
     if r["mode"] == "resume" and opts_of(r).get("reprocess_failed"):
         # 실행기가 허용 목록으로 검사한 값만(요청 때 검사, 여기서 한 번 더): 공백·글롭 문자가 없다.
         why, opts = check_options("resume", {"reprocess_failed": opts_of(r)["reprocess_failed"]})
@@ -541,7 +571,8 @@ def _exec(c, run_id):
         if why:
             raise RuntimeError("증분 불가: %s" % why)
         env["ENUM_INCREMENTAL"] = "1"
-        if cfg.get("known_keys_dir"):
+        # 기준일 전략은 알려진 키 파일을 쓰지 않는다(틀이 거부한다): 대장과 문서 DB 가 건너뛴다.
+        if cfg.get("known_keys_dir") and e.get("strategy") not in WATERMARK_STRATEGIES:
             for ext in (".csv", ".jsonl"):
                 kk = os.path.join(cfg["known_keys_dir"], r["site_id"] + ext)
                 if os.path.isfile(kk):
@@ -748,6 +779,7 @@ def ctl(argv):
     g.add_argument("--expected", type=int, help="예상 건수")
     g.add_argument("--approved-large", action="store_true", help="1만 건 이상(또는 미상) 이어받기를 사용자가 승인함")
     g.add_argument("--files", action="store_true", help="파일(PDF) 단계도 실행")
+    g.add_argument("--env-file", help="plan 의 request_headers_env 가 읽는 비밀값 파일(절대 경로, 600, 실행기 사용자 소유) -> ENUM_ENV_FILE")
     g.add_argument("--not-ready", metavar="WHY", help="등록하되 실행 불가로 표시")
     g.add_argument("--skip-validate", metavar="WHY", help="서버 파이썬으로 plan.py 를 못 불러올 때: 로컬 검증 근거를 적는다")
     u = sub.add_parser("unregister"); u.add_argument("--site", required=True)
@@ -777,13 +809,17 @@ def ctl(argv):
             if not ok:
                 os.remove(dest)
                 sys.exit("plan 검증 실패: " + msg)
+        env_file = os.path.expanduser(a.env_file) if a.env_file else None
+        if env_file and env_file_refusal(env_file):
+            os.remove(dest)
+            sys.exit("비밀값 파일 사용 불가: %s" % env_file_refusal(env_file))
         unit = a.unit or load_units().get(a.site)
         if not unit:
             os.remove(dest)
             sys.exit("등록 도메인을 모름: --unit 으로 주거나 units/*.csv 에 추가")
         e = {"site_id": a.site, "plan_file": dest, "sha256": hashlib.sha256(open(dest, "rb").read()).hexdigest(), "src": src,
              "unit": unit, "folder": a.folder, "expected_items": a.expected, "approved_large": a.approved_large, "files": a.files,
-             "strategy": one["sites"][a.site].get("strategy"), "ready": not a.not_ready, "why": a.not_ready, "validation": msg,
+             "env_file": env_file, "strategy": one["sites"][a.site].get("strategy"), "ready": not a.not_ready, "why": a.not_ready, "validation": msg,
              "registered_at": now(), "registered_by": actor}
         with lock:
             reg = registry(); reg[a.site] = e; save_registry(reg)

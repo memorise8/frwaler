@@ -15,6 +15,11 @@ outside the query's own filter (type other than article/review, or a primary sou
 means the filter was not applied: the listing stops as a configuration error instead of silently
 dropping it.
 
+Scope: the query keeps works whose primary source is in DOAJ *now* (``is_in_doaj``); the bulk
+export used a fixed list of DOAJ source ids from its snapshot, so a journal that joined or left DOAJ
+since then is in one and not the other. Like the bulk rows, nothing here drops works whose DOI is
+already delivered under another site or shared by two works: the import step does that.
+
 Deleted and merged works: this collector never deletes anything. A merged work is saved under the
 id the API returns for it (the surviving work). Works OpenAlex removed are handled outside
 collection: reported only, and removed from delivered data only with the user's approval.
@@ -94,7 +99,10 @@ def paper(record):
     return {
         "site_id": OpenAlexDoajCrawler.site_id,
         "external_id": record["id"],
-        "url": ("https://doi.org/" + doi) if doi else ("https://openalex.org/" + record["id"]),
+        # The listing URL is the work's stable OpenAlex address (the ledger compares W ids, so a DOI
+        # added later is not a listing conflict); the saved meta_url is the bulk rows' one.
+        "url": "https://openalex.org/" + record["id"],
+        "meta_url": ("https://doi.org/" + doi) if doi else ("https://openalex.org/" + record["id"]),
         "title": (record.get("title") or "").strip(),
         "published_date": record.get("publication_date"),
         "authors": list(record.get("authors") or []),

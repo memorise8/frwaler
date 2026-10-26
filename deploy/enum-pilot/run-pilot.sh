@@ -5,7 +5,7 @@
 #   run-pilot.sh report
 #   run-pilot.sh cleanup [--purge-data]
 # 환경변수(선택):
-#   ENUM_PILOT_DATE            날짜 태그 (기본: 오늘 YYYYMMDD)
+#   ENUM_PILOT_DATE            날짜 태그 (기본: 오늘 YYYYMMDD). 이어받기·기준일(api_cursor) 사이트는 매 실행 같은 태그(=같은 상태 폴더)를 써야 한다
 #   ENUM_PILOT_ROOT            호스트 작업 루트 (기본: /srv/enum-pilot)
 #   ENUM_SEED_HOLDS            seed-holds.csv 경로 (기본: <plan.json 디렉터리>/seed-holds.csv)
 #   ENUM_REFERENCE_DB          읽기 전용 참조 DB(sqlite) 호스트 경로 -> --reference-db
@@ -84,6 +84,7 @@ cmd_run() {
     [[ -f "$ENUM_ENV_FILE" && ! -L "$ENUM_ENV_FILE" ]] || die "ENUM_ENV_FILE 은 일반 파일이어야 함(링크·없는 파일 거부)"
     (( (8#$(stat -c %a "$ENUM_ENV_FILE") & 8#077) == 0 )) || die "ENUM_ENV_FILE 을 그룹·다른 사용자가 읽거나 쓸 수 있음(chmod 600 필요)"
     [[ "$(stat -c %u "$ENUM_ENV_FILE")" == "$(id -u)" ]] || die "ENUM_ENV_FILE 이 현재 사용자 소유가 아님"
+    (( (8#$(stat -c %a "$(dirname "$ENUM_ENV_FILE")") & 8#022) == 0 )) || die "ENUM_ENV_FILE 의 폴더를 그룹·다른 사용자가 쓸 수 있음"
     envargs=(--env-file "$(cd "$(dirname "$ENUM_ENV_FILE")" && pwd)/$(basename "$ENUM_ENV_FILE")")
   fi
 

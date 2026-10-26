@@ -736,6 +736,7 @@ class SiteRunner:
             status, reason = mapped
             if isinstance(exc, _IdentityStop):
                 identity = exc.detail
+        strategy.finished(status, reason)
         rollback = getattr(doc_conn, "rollback", None)
         if rollback and not isinstance(doc_conn, sqlite3.Connection):
             rollback()  # never leave an aborted PostgreSQL transaction behind

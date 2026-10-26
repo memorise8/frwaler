@@ -121,6 +121,9 @@ class Strategy:
     # for what changed since a watermark (api_cursor), so "complete" covers one pass only.
     reopens_complete = False
 
+    def finished(self, status, reason):
+        """Called by the runner once the run's status is known (before it is saved)."""
+
     def __init__(self, ctx):
         self.ctx = ctx
         self.plan = ctx.plan
@@ -1422,15 +1425,19 @@ class ApiCursor(_ForwardPager):
     before that batch is saved. Once a saved batch's order is confirmed by the next batch (or the
     cursor ended), the watermark moves to its last date: an interrupted run, a page cap or a cooldown resumes from that day (re-read days are
     skipped through the item ledger). At the cursor end the run is complete; the next run reopens
-    from the watermark (``reopens_complete``). Nothing that was not read is ever certified."""
+    from the watermark (``reopens_complete``). Fewer read than the reported count keeps the run's
+    start as the watermark (``MISMATCH_RUNS`` such runs in a row move on, for review). Nothing that
+    was not read is ever certified."""
     name = "api_cursor"
     SEGMENT = "all"
     reopens_complete = True
+    MISMATCH_RUNS = 3
 
     def __init__(self, ctx):
         super().__init__(ctx)
         self.cfg = ctx.plan.section("api_cursor")
         self.query_since = None  # the run's query is fixed when it starts; the watermark moves on
+        self.start_since = self.since
 
     @property
     def since(self):
@@ -1478,16 +1485,9 @@ class ApiCursor(_ForwardPager):
             yield batch
             # Saved (or ledgered) by the runner; its date counts once the next batch keeps the order.
             pending = dates[-1] if dates else pending
-        if end == "cursor_end":
-            self.advance(pending)  # nothing is left after the last batch
-        detail = {"since": start, "watermark": self.since, "end": end, "reported_total": total}
         if end == "page_cap":
-            if self.since == start:
-                # A whole capped run inside one day: every next run would read the same day again.
-                ctx.store.event(ctx.site_id, "api_cursor_watermark_not_advanced", detail)
-                self.outcome = ("incomplete", "page_cap_within_one_day")
-                return
-            self.outcome = ("incomplete", "page_cap_reached")
+            # A whole capped run inside one day: every next run would read the same day again.
+            self.outcome = ("incomplete", "page_cap_within_one_day" if self.since == start else "page_cap_reached")
             return
         if end == "empty_first_page" and total != 0:
             self.outcome = ("incomplete", "empty_first_page_unverified")
@@ -1495,14 +1495,37 @@ class ApiCursor(_ForwardPager):
         listed = ctx.store.listed_count(ctx.site_id, ctx.plan_fp)
         ctx.store.update_segment(ctx.site_id, ctx.plan_fp, self.SEGMENT, status="complete",
                                  evidence=end, reported_total=total)
-        ctx.state["api_cursor"] = dict(ctx.state.get("api_cursor") or {}, since=self.since)  # saved with the site
-        ctx.store.event(ctx.site_id, "api_cursor_end", dict(detail, listed=listed))
+        mark = {k: v for k, v in (ctx.state.get("api_cursor") or {}).items() if k != "mismatch"}
+        detail = {"since": start, "end": end, "reported_total": total, "listed": listed}
         if total is not None and listed < total:
-            # Fewer read than the query counted at its start (items updated during the run only add).
+            # Fewer read than the query counted at its start (items updated during the run only add):
+            # the same window is read again. Only a third such run in a row from the same start moves
+            # the watermark on, for a person to review.
+            held = (ctx.state.get("api_cursor") or {}).get("mismatch") or {}
+            runs = held.get("runs", 0) + 1 if held.get("start") == start else 1
             ctx.store.event(ctx.site_id, "total_mismatch", {"reported_total": total, "listed": listed})
+            if runs >= self.MISMATCH_RUNS:
+                self.advance(pending)
+                ctx.state["api_cursor"] = dict(mark, since=self.since)
+                ctx.store.event(ctx.site_id, "api_cursor_mismatch_accepted", dict(detail, runs=runs,
+                                                                                 watermark=self.since))
+            else:
+                ctx.state["api_cursor"] = dict(mark, since=start, mismatch={"start": start, "runs": runs})
+                ctx.store.event(ctx.site_id, "api_cursor_mismatch_held", dict(detail, runs=runs))
             self.outcome = ("complete_with_mismatch", "reported_total_mismatch")
-        else:
-            self.outcome = ("complete", f"exhausted_{end}")
+            return
+        self.advance(pending)  # nothing is left after the last batch
+        ctx.state["api_cursor"] = dict(mark, since=self.since)  # saved with the site
+        ctx.store.event(ctx.site_id, "api_cursor_end", dict(detail, watermark=self.since))
+        self.outcome = ("complete", f"exhausted_{end}")
+
+    def finished(self, status, reason):
+        from .runner import COMPLETED
+        if status not in COMPLETED and self.since == self.start_since:
+            # Interrupted, capped, cooling down or stopped with nothing committed: the next run reads
+            # the same window again (a stop that repeats here never moves on by itself).
+            self.ctx.store.event(self.ctx.site_id, "api_cursor_watermark_not_advanced",
+                                 {"since": self.since, "status": status, "reason": reason})
 
 
 STRATEGIES = {cls.name: cls for cls in (LastPageBackward, DateRangeSplit, OldestFirstSort, Sitemap, ApiCursor)}

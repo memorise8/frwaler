@@ -472,6 +472,10 @@ def _validate_api_cursor(site_id, raw):
     holders = [k for k, v in params.items() if isinstance(v, str) and "{since}" in v]
     if len(holders) != 1 or params[holders[0]].count("{since}") != 1 or "{since}" in listing["url"]:
         raise PlanError(f"{site_id}: api_cursor needs exactly one {{since}} in one listing parameter")
+    if "per_page" in params and (type(params["per_page"]) is not int or not 1 <= params["per_page"] <= 100):
+        raise PlanError(f"{site_id}: api_cursor per_page must be an integer 1..100")
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.]*:asc", str(params.get("sort") or "")):
+        raise PlanError(f"{site_id}: api_cursor needs an ascending sort parameter (sort=<field>:asc)")
     if raw.get("incremental") is not None:
         # Every api_cursor run already reads only what changed since the watermark.
         raise PlanError(f"{site_id}: api_cursor plans take no incremental section")

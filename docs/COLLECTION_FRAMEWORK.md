@@ -225,13 +225,22 @@ enum_event(id PK, site_id, at, kind, detail JSON)   -- 접근 차단, 구간 불
 * 항목 날짜(갱신일, `item.date`)가 거꾸로 가면(`max_order_violations`, 기본 0) 그 묶음을 저장하기 전에 `sort_order_not_ascending` 으로 멈춤.
 * 묶음(한 쪽)을 저장·대장 기록하고 다음 묶음이 순서를 지킨 것을 확인한 뒤(또는 커서 끝) 기준일을 그 묶음의 마지막 날짜로 올리고 상태에 바로 저장한다. 그래서 중단·`page_cap_reached`·
   429 쿨다운(`rate_limited_cooldown`) 뒤 다음 실행은 그날부터 다시 읽고(이미 받은 것은 대장으로 건너뜀), 읽지 않은 것은 완료로 치지 않는다.
-  한 실행이 하루 안에서 쪽 상한에 닿으면 `api_cursor_watermark_not_advanced` 이벤트와 `incomplete/page_cap_within_one_day`(같은 날을 계속 다시 읽음: 사람이 상한을 올림).
-* 끝: 결과가 빈 쪽 + `next_cursor: null`(칸 있음). 읽은 고유 수 < 첫 쪽 `meta.count` 이면 `complete_with_mismatch`(실행 중 갱신은 수를 늘리기만 함).
+  한 실행이 하루 안에서 쪽 상한에 닿으면 `incomplete/page_cap_within_one_day`(같은 날을 계속 다시 읽음: 사람이 상한을 올림).
+  기준일을 하나도 올리지 못하고 끝난 미완료 실행(쪽 상한·예산·429·순서 위반·중단 등)은 모두 `api_cursor_watermark_not_advanced` 이벤트를 남긴다.
+  기준일은 날짜 단위(YYYY-MM-DD)다. 실제 API 점검 뒤 시각 단위로 바꿀지 다시 본다(하루 갱신이 쪽 상한보다 많으면 위 정지).
+* 끝: 결과가 빈 쪽 + `next_cursor: null`(칸 있음). 읽은 고유 수 < 첫 쪽 `meta.count` 이면 `complete_with_mismatch`(실행 중 갱신은 수를 늘리기만 함)이고
+  기준일을 그 실행의 시작일로 되돌린다(`api_cursor_mismatch_held`): 같은 창을 다시 읽는다. 같은 시작일에서 3번 연속 불일치면 기준일을 올리고
+  `api_cursor_mismatch_accepted`(사람 검토, 상태는 그대로 `complete_with_mismatch`).
   첫 쪽이 비고 count 0 이면 "바뀐 것 없음"으로 완료.
 * 완료된 사이트도 다음 실행(`resume`, `--incremental`, 수집 예약)에서 기준일부터 다시 연다(`reopens_complete`; 재시도만 하지 않음).
-  `--incremental` 은 같은 실행으로 처리(알려진 키 파일 불필요). plan 이 바뀌면(fingerprint) 기준일은 `initial_since` 로 돌아간다(더 읽을 뿐 빠뜨리지 않음).
-* plan 검사: next_cursor GET 목록, `listing.total`(json), `{since}` 정확히 하나, `api_cursor` 는 `initial_since`(YYYY-MM-DD)·`max_order_violations` 만,
-  `incremental` 절 금지.
+  `--incremental` 은 같은 실행으로 처리(`--known-keys`·`--known-run`·`--incremental-max-pages` 는 거부, 상한은 plan `max_pages`).
+  매 실행은 같은 상태 폴더(`ENUM_PILOT_DATE` 태그)를 써야 한다: 수집 실행기는 이어받기·증분(수집 예약)에 사이트별 고정 폴더를 쓰고, 등록의 `--env-file` 을 그 사이트에만 `ENUM_ENV_FILE` 로 넘긴다. plan 이 바뀌면(fingerprint) 기준일은 `initial_since` 로 돌아간다(더 읽을 뿐 빠뜨리지 않음).
+* plan 검사: next_cursor GET 목록, `listing.total`(json), `{since}` 정확히 하나, `sort=<필드>:asc`, `per_page` 1..100, `api_cursor` 는
+  `initial_since`(YYYY-MM-DD)·`max_order_violations` 만, `incremental` 절 금지.
+* openalex-doaj: 목록 키·주소는 바뀌지 않는 `https://openalex.org/W…`(나중에 DOI 가 생겨도 대장 충돌 아님), 저장 meta_url 은 일괄 행과 같게
+  `https://doi.org/<doi>`, 없으면 `https://openalex.org/W…`. 범위는 지금의 DOAJ 등재(`is_in_doaj`)로, 일괄 내보내기의 고정 DOAJ 출처 목록과 다를 수 있다.
+  수집기는 아무것도 지우거나 거르지 않는다: 이 사이트를 가져올 때(import) 일괄 내보내기처럼 v2 에 이미 있는 DOI(어느 사이트든)·같은 DOI 가
+  둘 이상인 행·OpenAlex 삭제 id 를 빼야 한다.
 
 ## 6. 항목별 실패 대장
 
