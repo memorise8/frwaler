@@ -9,7 +9,10 @@ ENV PYTHONUNBUFFERED=1 PYTHONPATH=/app
 #                   PDF. They invoke it via subprocess, so without it each
 #                   raises FileNotFoundError mid-extraction and skips the
 #                   document as a 0-character abstract.
-RUN apt-get update && apt-get install -y --no-install-recommends curl poppler-utils \
+# Container egress on port 80 is blocked on the server, so apt fetches over
+# https (the base image ships ca-certificates).
+RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get update && apt-get install -y --no-install-recommends curl poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 COPY delivery/requirements.txt /app/delivery/requirements.txt
 RUN pip install --no-cache-dir -r /app/delivery/requirements.txt
