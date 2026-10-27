@@ -98,6 +98,7 @@ ol.legend li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px;align
         <li><a href="#schedules">수집 예약</a></li>
         <li><a href="#health">건강 점검</a></li>
         <li><a href="#crawlers">수집기 상태</a></li>
+        <li><a href="#api-keys">API 키 설정</a></li>
       </ol>
     </li>
     <li><a href="#rules">수집 규칙</a></li>
@@ -126,7 +127,7 @@ ol.legend li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px;align
 
 <section id="menu">
   <h2>메뉴 한눈에</h2>
-  <p>모든 화면 맨 위에 같은 메뉴 줄이 있습니다. 작은 글씨(수집·상태·결과·기타)가 묶음 이름입니다.</p>
+  <p>모든 화면 맨 위에 같은 메뉴 줄이 있습니다. 작은 글씨(수집·상태·결과·설정·기타)가 묶음 이름입니다.</p>
   <figure class="shot wide" style="max-width:1071px"><div class="shotbox"><img src="img/menu.webp" width="1071" height="68" alt="위쪽 메뉴 줄: 수집·상태·결과·기타 묶음과 사용 안내, 작업 대시보드" loading="lazy"><span class="pin a-r" style="left:22.19%;top:20.29%" aria-hidden="true">1</span><span class="pin a-r" style="left:43.51%;top:20.29%" aria-hidden="true">2</span><span class="pin a-r" style="left:64.84%;top:20.29%" aria-hidden="true">3</span><span class="pin a-r" style="left:78.5%;top:20.29%" aria-hidden="true">4</span><span class="pin a-t" style="left:90.77%;top:26.91%" aria-hidden="true">5</span></div></figure><p class="swipe">폰에서는 그림을 옆으로 밀어 볼 수 있습니다.</p>
   <ol class="legend">
     <li><span class="num">1</span><span><b>수집</b> 묶음: 사이트 수집(주 화면) · 수집 예약 · 백필 진행</span></li>
@@ -146,6 +147,7 @@ ol.legend li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px;align
       <tr><td>수집 상태</td><td>DB에 들어 있는 전체 문서·PDF 수, 국가·유형 분포</td></tr>
       <tr><td rowspan="2">결과</td><td>문서 탐색</td><td>받은 문서 찾기와 상세 보기</td></tr>
       <tr><td>번역 작업</td><td>제목 번역·초록 요약 작업</td></tr>
+      <tr><td>설정</td><td>API 키</td><td>OpenAlex 같은 공급자 API 키 넣기·바꾸기, 키 상태 보기 (<a href="#api-keys">API 키 설정</a>)</td></tr>
       <tr><td rowspan="2">기타</td><td>사용 안내</td><td>이 설명서</td></tr>
       <tr><td>작업 대시보드 🔒</td><td>별도 암호가 필요한 관리 화면</td></tr>
     </tbody>
@@ -406,6 +408,26 @@ ol.legend li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px;align
       <tr><td>번역 작업</td><td>「대상 미리보기」로 대상 확인 → 「작업 등록」</td><td>외부 번역 비용이 듭니다. 「작업 등록」은 누르면 바로 등록되니 미리보기로 대상 수를 먼저 확인하세요</td></tr>
     </tbody>
   </table></div>
+  <h3 id="api-keys">API 키 설정</h3>
+  <p>메뉴 <b>설정 → API 키</b>에서 공급자(지금은 OpenAlex) API 키를 넣거나 바꿉니다. 공공데이터포털(data.go.kr)·ScienceON 줄은 자리만 있고, 시험 방법이 준비될 때까지 저장할 수 없습니다.</p>
+  <ol>
+    <li>공급자 줄의 「새 키」 칸에 키를 붙여 넣습니다. 칸은 비밀번호처럼 가려집니다.</li>
+    <li><span class="btn">시험 후 저장</span>을 누릅니다. 서버가 그 키로 공급자에 가벼운 시험 요청을 <b>한 번</b> 보냅니다(OpenAlex: 문헌 목록 1건. 그 전에 공급자의 robots.txt 를 한 번 읽습니다).</li>
+    <li>정상이면 그때 저장되고 상태가 「설정됨 · 사용 가능」으로 바뀝니다. 수집기는 다음 실행부터 새 키를 씁니다.</li>
+    <li>실패하면 <b>저장하지 않고 이전 키를 그대로 둡니다.</b> 문구를 보고 다시 넣습니다.</li>
+  </ol>
+  <div class="tbl" style="margin-top:10px"><table>
+    <thead><tr><th>문구</th><th>뜻과 할 일</th></tr></thead>
+    <tbody>
+      <tr><td>키가 맞지 않습니다, 다시 입력해 주세요</td><td>공급자가 키를 거절했습니다. 복사할 때 빠진 글자가 없는지 보고 다시 넣습니다.</td></tr>
+      <tr><td>키 형식이 맞지 않습니다</td><td>공백이나 허용되지 않는 글자가 들어 있습니다. 공급자에 요청하지 않았습니다.</td></tr>
+      <tr><td>한도 초과, 잠시 뒤 다시</td><td>공급자의 요청 한도에 걸렸습니다. 공급자가 정한 시간(정하지 않았으면 1분)이 지나기 전에는 다시 눌러도 공급자에 요청하지 않습니다.</td></tr>
+      <tr><td>시도가 너무 많습니다</td><td>한 공급자에 10분 동안 5번까지만 시험합니다. 10분 뒤 다시 합니다.</td></tr>
+      <tr><td>다른 키를 시험하는 중입니다</td><td>다른 시험이 아직 끝나지 않았습니다. 잠시 뒤 다시 누릅니다.</td></tr>
+      <tr><td>연결 실패, 다시 시도</td><td>공급자에 닿지 못했거나 예상과 다른 답이 왔습니다. 잠시 뒤 다시 합니다.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">저장한 키는 화면·응답·기록 어디에도 다시 나오지 않습니다(앞뒤 몇 글자도 보이지 않음). 화면에는 설정 여부와 마지막 시험 결과·시각만 나옵니다. 키를 확인해야 하면 공급자 사이트에서 봅니다.</p>
 </section>
 
 <section id="rules">

@@ -29,6 +29,7 @@ from delivery.translation.observations import prune as prune_observations, recor
 from delivery.be.database import get_database
 from delivery.be.cache import TTLCache
 from delivery.be.collect import build_router as build_collect_router
+from delivery.be.api_keys import build_router as build_api_keys_router
 
 
 class JobIn(BaseModel):
@@ -152,6 +153,7 @@ def create_app(dsn: str) -> FastAPI:
         return database.connection()
 
     app.include_router(build_collect_router(_conn, aggregates))
+    app.include_router(build_api_keys_router())
 
     @app.get("/health")
     def health():

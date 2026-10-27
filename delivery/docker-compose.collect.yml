@@ -15,6 +15,8 @@ services:
       # it from there avoids copying the secret into .env.
       # (COLLECT_RUNNER_TOKEN, if set, still takes precedence.)
       COLLECT_RUNNER_TOKEN_FILE: /run/collect-runner/token
+      # 설정 → API 키 (delivery/be/api_keys.py): provider keys are written here as <provider>.env.
+      API_KEYS_DIR: /data/api-keys
     volumes:
       # Directory holding the site-status *.csv files (site_id,state,detail,updated_at,...).
       - ${COLLECT_STATUS_HOST_DIR:?set COLLECT_STATUS_HOST_DIR to the site-status directory}:/data/collect-status:ro
@@ -29,5 +31,17 @@ services:
         source: ${COLLECT_RUNNER_HOME:-/srv/collect-runner}/.token
         target: /run/collect-runner/token
         read_only: true
+        bind:
+          create_host_path: false
+      # The collectors' secrets folder (the env files run-pilot.sh / the runner pass as ENUM_ENV_FILE),
+      # read-write so a key that passed its test can be saved. be runs as root and gives each file
+      # the folder owner's uid/gid, mode 600, as the runner's env_file_refusal requires. It must not
+      # be inside the runs root or the plans folder (both are mounted into collection containers).
+      # create_host_path=false: a missing folder fails be instead of Docker creating a root-owned one.
+      # Before the first `up` with this file, on the host (as the runner user):
+      #   mkdir -m 700 -p "$COLLECT_RUNNER_HOME/secrets"   # or set API_KEYS_HOST_DIR
+      - type: bind
+        source: ${API_KEYS_HOST_DIR:-${COLLECT_RUNNER_HOME:-/srv/collect-runner}/secrets}
+        target: /data/api-keys
         bind:
           create_host_path: false

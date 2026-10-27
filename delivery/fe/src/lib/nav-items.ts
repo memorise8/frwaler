@@ -34,6 +34,12 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     ],
   },
   {
+    label: "설정",
+    items: [
+      { href: "/settings/api-keys", label: "API 키", match: ["/settings/api-keys"] },
+    ],
+  },
+  {
     label: "기타",
     items: [
       { href: "/guide/index.html", label: "사용 안내", match: ["/guide"], external: true },

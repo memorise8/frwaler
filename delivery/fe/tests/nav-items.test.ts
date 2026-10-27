@@ -24,15 +24,16 @@ describe("isActiveNav", () => {
 });
 
 describe("NAV_GROUPS / NAV_ITEMS", () => {
-  it("groups the menu as 수집 · 상태 · 결과 · 기타 in operator order", () => {
-    expect(NAV_GROUPS.map((group) => group.label)).toEqual(["수집", "상태", "결과", "기타"]);
+  it("groups the menu as 수집 · 상태 · 결과 · 설정 · 기타 in operator order", () => {
+    expect(NAV_GROUPS.map((group) => group.label)).toEqual(["수집", "상태", "결과", "설정", "기타"]);
     expect(NAV_GROUPS.map((group) => group.items.map((item) => item.label))).toEqual([
       ["사이트 수집", "수집 예약", "백필 진행"],
       ["수집기 상태", "건강 점검", "수집 상태"],
       ["문서 탐색", "번역 작업"],
+      ["API 키"],
       ["사용 안내", "작업 대시보드 (암호 필요)"],
     ]);
-    expect(NAV_ITEMS.map((item) => item.href)).toEqual(["/site-collect", "/schedules", "/backfill", "/crawlers", "/health", "/collected", "/documents", "/translations", "/guide/index.html", "/"]);
+    expect(NAV_ITEMS.map((item) => item.href)).toEqual(["/site-collect", "/schedules", "/backfill", "/crawlers", "/health", "/collected", "/documents", "/translations", "/settings/api-keys", "/guide/index.html", "/"]);
   });
 
   // "/" sits behind a separate Basic-auth prompt: neither the logo nor an
@@ -57,7 +58,7 @@ describe("NAV_GROUPS / NAV_ITEMS", () => {
   });
 
   it("activates exactly one section for every console route", () => {
-    const routes = ["/", "/site-collect", "/crawlers", "/crawlers/site-1", "/health", "/backfill", "/collected", "/schedules", "/documents", "/documents/9", "/translations"];
+    const routes = ["/", "/site-collect", "/crawlers", "/crawlers/site-1", "/health", "/backfill", "/collected", "/schedules", "/documents", "/documents/9", "/translations", "/settings/api-keys"];
     for (const route of routes) {
       const matched = NAV_ITEMS.filter((item) => isActiveNav(route, item.match));
       expect(matched, route).toHaveLength(1);
