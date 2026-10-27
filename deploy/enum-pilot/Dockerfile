@@ -15,7 +15,9 @@ ENV PYTHONUNBUFFERED=1 \
     LIBERTREE_BLOB_ROOT=/data/blob
 
 # delivery/Dockerfile.worker 와 같은 이유: pdftotext(poppler-utils), curl 을 쓰는 수집기가 있다.
-RUN apt-get update && apt-get install -y --no-install-recommends curl poppler-utils \
+# 서버의 컨테이너는 바깥 80(http)이 막혀 있어 apt 주소를 https 로 바꾼다(기반 이미지에 ca-certificates 가 있다).
+RUN sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list.d/debian.sources \
+    && apt-get update && apt-get install -y --no-install-recommends curl poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 
 COPY delivery/requirements.txt /app/delivery/requirements.txt
