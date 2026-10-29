@@ -390,6 +390,27 @@ class StrategyTest(unittest.TestCase):
         strategy.run(conn, lambda mode: "SELECT again", {})
         self.assertNotIn(f"SET LOCAL statement_timeout = {catalogue.STRATEGY_BUDGET_MS}",
                          [sql for sql, _ in conn.statements])
+        self.assertIn(f"SET LOCAL statement_timeout = {catalogue.SEARCH_LIMIT_MS}",
+                      [sql for sql, _ in conn.statements])
+
+    def test_read_past_the_search_limit_is_refused_not_a_500(self):
+        from contextlib import contextmanager
+        from psycopg.errors import QueryCanceled
+
+        class SlowConn:  # every SELECT runs out of its budget, as on a cold cache
+            @contextmanager
+            def transaction(self, force_rollback=False):
+                yield
+
+            def execute(self, sql, params=None, **_kwargs):
+                if sql.startswith("SELECT"):
+                    raise QueryCanceled("budget")
+                return _Result([])
+
+        for strategy in (catalogue._Strategy("walk"), catalogue._Strategy("walk", None)):
+            with self.assertRaises(catalogue.CatalogueError) as caught:
+                strategy.run(SlowConn(), lambda mode: "SELECT slow", {})
+            self.assertEqual(caught.exception.reason, "search_too_slow")
 
 
 if __name__ == "__main__":

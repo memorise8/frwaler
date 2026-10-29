@@ -60,6 +60,13 @@ CROSS_RANGE_BITMAP_MAX = int(os.environ.get("DELIVERY_CATALOGUE_CROSS_RANGE_BITM
 STRATEGY_BUDGET_MS = int(os.environ.get("DELIVERY_CATALOGUE_BUDGET_MS", "150"))
 PROBE_BUDGET_MS = int(os.environ.get("DELIVERY_CATALOGUE_PROBE_BUDGET_MS", "100"))
 COUNT_BUDGET_MS = int(os.environ.get("DELIVERY_CATALOGUE_COUNT_BUDGET_MS", "100"))
+# Ceiling for the reads that otherwise run without a budget (a fallback, or a
+# walk over a huge estimate). On a cold cache a term with tens of thousands of
+# matches in a multi-million-row site reads one random heap block per match and
+# would run into the connection's 30 s statement_timeout (a 500). Past this
+# ceiling the request is refused as "search_too_slow" so the FE can ask for a
+# narrower search instead.
+SEARCH_LIMIT_MS = int(os.environ.get("DELIVERY_CATALOGUE_SEARCH_LIMIT_MS", "10000"))
 _MODE_SETTINGS = {
     "walk": (("enable_bitmapscan", "off"), ("enable_seqscan", "off")),
     "bitmap": (("enable_indexscan", "off"), ("enable_indexonlyscan", "off"), ("enable_seqscan", "off")),
@@ -422,14 +429,20 @@ class _Strategy:
         if self.mode is None:
             return _query(conn, sql_for(None), params)
         if self.budget_ms is None:
-            return _query(conn, sql_for(self.mode), params, self.mode)
+            return self._limited(conn, sql_for(self.mode), params)
         if not self.fell_back:
             rows = _query(conn, sql_for(self.mode), params, self.mode, self.budget_ms)
             if rows is not None:
                 return rows
             self.fell_back = True
             self.mode = _OTHER_MODE[self.mode]
-        return _query(conn, sql_for(self.mode), params, self.mode)
+        return self._limited(conn, sql_for(self.mode), params)
+
+    def _limited(self, conn, sql: str, params: dict) -> list:
+        rows = _query(conn, sql, params, self.mode, SEARCH_LIMIT_MS)
+        if rows is None:
+            raise CatalogueError("search_too_slow", "search took too long; narrow the search")
+        return rows
 
 
 def _read_segments(conn, plan: _Plan, sort: str, cursor: Cursor | None, limit: int,

@@ -93,6 +93,7 @@ const INVALID_MESSAGES: Readonly<Record<string, string>> = {
   invalid_cursor: "페이지 위치 정보가 올바르지 않습니다. 첫 페이지부터 다시 탐색해 주세요.",
   cursor_filter_mismatch: "검색 조건이 바뀌어 첫 페이지부터 다시 보여 드려야 합니다.",
   cursor_sort_mismatch: "정렬이 바뀌어 첫 페이지부터 다시 보여 드려야 합니다.",
+  search_too_slow: "이 검색어에 맞는 문서가 많아 시간이 오래 걸립니다. 검색어를 더 구체적으로 쓰거나 기간을 좁혀 주세요.",
 };
 
 export const invalidCatalogueMessage = (reason: string | undefined): string =>
