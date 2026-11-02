@@ -65,8 +65,10 @@ COUNT_BUDGET_MS = int(os.environ.get("DELIVERY_CATALOGUE_COUNT_BUDGET_MS", "100"
 # matches in a multi-million-row site reads one random heap block per match and
 # would run into the connection's 30 s statement_timeout (a 500). Past this
 # ceiling the request is refused as "search_too_slow" so the FE can ask for a
-# narrower search instead.
-SEARCH_LIMIT_MS = int(os.environ.get("DELIVERY_CATALOGUE_SEARCH_LIMIT_MS", "10000"))
+# narrower search instead. Keep it under the FE's 8 s fetch timeout
+# (fe/src/lib/document-catalogue.ts), or the FE aborts first and shows a
+# generic "cannot load" message.
+SEARCH_LIMIT_MS = int(os.environ.get("DELIVERY_CATALOGUE_SEARCH_LIMIT_MS", "6000"))
 _MODE_SETTINGS = {
     "walk": (("enable_bitmapscan", "off"), ("enable_seqscan", "off")),
     "bitmap": (("enable_indexscan", "off"), ("enable_indexonlyscan", "off"), ("enable_seqscan", "off")),
